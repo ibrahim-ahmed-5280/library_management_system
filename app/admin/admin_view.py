@@ -47,7 +47,7 @@ def inject_admin_data():
 def login_page():
     return render_template('admin/login.html')
 
-#Dashboard admin page
+# Dashboard admin page
 @app.route('/admin/dashboard_page')
 def dashboard_page_admin():
     email = get_session_data()
@@ -56,9 +56,25 @@ def dashboard_page_admin():
 
     connect_status, admin_model = check_admin_model_connection()
     if not connect_status:
-        return jsonify({"Database connection failed."})
+        return jsonify({"error": "Database connection failed."})
 
-    return render_template('admin/dashboard.html')
+    # 🔹 Read dashboard statistics
+    stats = {
+        "total_books": admin_model.total_books(),
+        "total_members": admin_model.total_members(),
+        "borrowed_books": admin_model.borrowed_books(),
+        "overdue_books": admin_model.overdue_books(),
+        "total_staff": admin_model.total_staff(),
+        "categories": admin_model.total_categories(),
+        "reservations": admin_model.total_reservations(),
+        "new_books": admin_model.new_books_this_month()
+    }
+
+    return render_template(
+        'admin/dashboard.html',
+        admin_stats=stats
+    )
+
 
 #Add admins page
 @app.route('/admin/add_admin_page')
@@ -165,6 +181,7 @@ def manage_policy_page():
 def login_admin():
     data = request.get_json()
 
+    print(f"The data recevied {data}")
     # Extract fields
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()

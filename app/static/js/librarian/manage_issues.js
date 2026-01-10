@@ -1,142 +1,208 @@
-function clearErrors(form) {
-    form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
-    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-}
-
-function showError(input, errorId, message) {
-    input.classList.add('is-invalid');
-    document.getElementById(errorId).textContent = message;
-}
-
-// ---------- Due date validation ----------
-function isDueDateValid(dateStr) {
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const dueDate = new Date(dateStr);
-    return dueDate >= today;
-}
-
-// ---------- Insert New Issue ----------
 function insert_issue() {
-    const member = document.getElementById('new_issue_member');
-    const edition = document.getElementById('new_issue_edition');
-    const due_date = document.getElementById('new_issue_due_date');
-    const form = document.getElementById('newIssueForm');
+    // Elements
+    const memberEl = document.getElementById('new_issue_member');
+    const editionEl = document.getElementById('new_issue_edition');
+    const dueDateEl = document.getElementById('new_issue_due_date');
 
-    clearErrors(form);
-    let hasError = false;
-
-    if (!member.value) { showError(member, 'new_issue_member_error', 'Select a member.'); hasError = true; }
-    if (!edition.value) { showError(edition, 'new_issue_edition_error', 'Select an edition.'); hasError = true; }
-    if (!due_date.value) { showError(due_date, 'new_issue_due_date_error', 'Set a due date.'); hasError = true; }
-    else if (!isDueDateValid(due_date.value)) {
-        showError(due_date, 'new_issue_due_date_error', 'Due date cannot be in the past.');
-        hasError = true;
-    }
-    if (hasError) return;
+    const successMsg = document.getElementById('new_issue_succ_msg');
+    const errorMsg = document.getElementById('new_issue_err_msg');
 
     const spinner = document.getElementById('new_issue_spinner');
     const btnText = document.getElementById('new_issue_btn_text');
-    spinner.classList.remove('d-none'); btnText.textContent = 'Adding...';
 
-    fetch('/issue_books/insert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            member_id: member.value,
-            edition_id: edition.value,
-            due_date: due_date.value
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        const succ_msg = document.getElementById('new_issue_succ_msg');
-        const error_msg = document.getElementById('new_issue_err_msg');
-        succ_msg.classList.add('d-none'); error_msg.classList.add('d-none');
+    // Reset UI
+    successMsg.classList.add('d-none');
+    errorMsg.classList.add('d-none');
 
-        if (data.success) {
-            succ_msg.textContent = data.message; succ_msg.classList.remove('d-none');
-            setTimeout(() => { form.reset(); succ_msg.classList.add('d-none'); location.reload(); }, 1000);
-        } else {
-            error_msg.textContent = data.message; error_msg.classList.remove('d-none');
-        }
-    })
-    .finally(() => { spinner.classList.add('d-none'); btnText.textContent = 'Add Issue'; });
-}
+    memberEl.classList.remove('is-invalid');
+    editionEl.classList.remove('is-invalid');
+    dueDateEl.classList.remove('is-invalid');
 
-// ---------- Open Edit Modal ----------
-function openEditModal(issue_id) {
-    const issue = issuesData.find(i => i.request_id === issue_id);
-    if (!issue) return;
-
-    document.getElementById('edit_issue_id').value = issue.request_id;
-
-    // Populate members
-    const memberSelect = document.getElementById('edit_issue_member');
-    memberSelect.innerHTML = '';
-    membersData.forEach(m => {
-        memberSelect.innerHTML += `<option value="${m.user_id}" ${m.user_id===issue.member_id?'selected':''}>${m.name}</option>`;
-    });
-
-    // Populate editions
-    const editionSelect = document.getElementById('edit_issue_edition');
-    editionSelect.innerHTML = '';
-    booksWithEditions.forEach(be => {
-        const selected = be.edition.edition_id === issue.edition_id ? 'selected' : '';
-        editionSelect.innerHTML += `<option value="${be.edition.edition_id}" ${selected}>${be.edition.edition_number} - ${be.book.title}</option>`;
-    });
-
-    document.getElementById('edit_issue_due_date').value = issue.due_date;
-    document.getElementById('edit_issue_status').value = issue.status;
-
-    const editModal = new bootstrap.Modal(document.getElementById('editIssueModal'));
-    editModal.show();
-}
-
-// ---------- Update Issue ----------
-function update_issue() {
-    const issue_id = document.getElementById('edit_issue_id').value;
-    const member = document.getElementById('edit_issue_member');
-    const edition = document.getElementById('edit_issue_edition');
-    const due_date = document.getElementById('edit_issue_due_date');
-    const status = document.getElementById('edit_issue_status');
-    const form = document.getElementById('editIssueForm');
-
-    clearErrors(form);
     let hasError = false;
 
-    if (!member.value) { showError(member, 'edit_issue_member_error', 'Select a member.'); hasError = true; }
-    if (!edition.value) { showError(edition, 'edit_issue_edition_error', 'Select an edition.'); hasError = true; }
-    if (!due_date.value) { showError(due_date, 'edit_issue_due_date_error', 'Set a due date.'); hasError = true; }
-    else if (!isDueDateValid(due_date.value)) {
-        showError(due_date, 'edit_issue_due_date_error', 'Due date cannot be in the past.');
+    // Today (no time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Member validation
+    if (!memberEl.value) {
+        memberEl.classList.add('is-invalid');
+        document.getElementById('new_issue_member_error').innerText =
+            'Member is required';
         hasError = true;
     }
-    if (!status.value) { showError(status, 'edit_issue_status_error', 'Select a status.'); hasError = true; }
+
+    // Edition validation
+    if (!editionEl.value) {
+        editionEl.classList.add('is-invalid');
+        document.getElementById('new_issue_edition_error').innerText =
+            'Edition is required';
+        hasError = true;
+    }
+
+    // Due date validation
+    if (!dueDateEl.value) {
+        dueDateEl.classList.add('is-invalid');
+        document.getElementById('new_issue_due_date_error').innerText =
+            'Due date is required';
+        hasError = true;
+    } else {
+        const dueDate = new Date(dueDateEl.value);
+        dueDate.setHours(0, 0, 0, 0);
+
+        if (dueDate <= today) {
+            dueDateEl.classList.add('is-invalid');
+            document.getElementById('new_issue_due_date_error').innerText =
+                'Due date must be greater than today';
+            hasError = true;
+        }
+    }
+
     if (hasError) return;
 
+    // Show loading
+    spinner.classList.remove('d-none');
+    btnText.innerText = 'Processing...';
+
+    // Payload
+    const payload = {
+        member_id: memberEl.value,
+        edition_id: editionEl.value,
+        due_date: dueDateEl.value
+    };
+
+    // Send request
+    fetch('/issue_books/insert', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(data => {
+            spinner.classList.add('d-none');
+            btnText.innerText = 'Add Issue';
+
+            if (data.success) {
+                successMsg.innerText = data.message;
+                successMsg.classList.remove('d-none');
+                document.getElementById('newIssueForm').reset();
+            } else {
+                errorMsg.innerText = data.message;
+                errorMsg.classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            spinner.classList.add('d-none');
+            btnText.innerText = 'Add Issue';
+            errorMsg.innerText = 'Server error. Please try again.';
+            errorMsg.classList.remove('d-none');
+            console.error(err);
+        });
+}
+
+function update_issue(issueId) {
+    // Elements
+    const memberEl = document.getElementById(`edit_issue_member${issueId}`);
+    const editionEl = document.getElementById(`edit_issue_edition${issueId}`);
+    const dueDateEl = document.getElementById(`edit_issue_due_date${issueId}`);
+
+    const successMsg = document.getElementById(`edit_issue_succ_msg${issueId}`);
+    const errorMsg = document.getElementById(`edit_issue_err_msg${issueId}`);
+
+    const spinner = document.getElementById(`edit_spinner_${issueId}`);
+    const btnText = document.getElementById(`text_btn${issueId}`);
+
+    // Reset UI
+    successMsg.classList.add('d-none');
+    errorMsg.classList.add('d-none');
+
+    memberEl.classList.remove('is-invalid');
+    editionEl.classList.remove('is-invalid');
+    dueDateEl.classList.remove('is-invalid');
+
+    let hasError = false;
+
+    // Today (no time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Member validation
+    if (!memberEl.value) {
+        memberEl.classList.add('is-invalid');
+        document.getElementById(`edit_issue_member_error${issueId}`).innerText =
+            'Member is required';
+        hasError = true;
+    }
+
+    // Edition validation
+    if (!editionEl.value) {
+        editionEl.classList.add('is-invalid');
+        document.getElementById(`edit_issue_edition_error${issueId}`).innerText =
+            'Edition is required';
+        hasError = true;
+    }
+
+    // Due date validation
+    if (!dueDateEl.value) {
+        dueDateEl.classList.add('is-invalid');
+        document.getElementById(`edit_issue_due_date_error${issueId}`).innerText =
+            'Due date is required';
+        hasError = true;
+    } else {
+        const dueDate = new Date(dueDateEl.value);
+        dueDate.setHours(0, 0, 0, 0);
+
+        if (dueDate <= today) {
+            dueDateEl.classList.add('is-invalid');
+            document.getElementById(`edit_issue_due_date_error${issueId}`).innerText =
+                'Due date must be greater than today';
+            hasError = true;
+        }
+    }
+
+    if (hasError) return;
+
+    // Show loading
+    spinner.classList.remove('d-none');
+    btnText.innerText = 'Processing...';
+
+    // Payload
+    const payload = {
+        issue_id: issueId,
+        member_id: memberEl.value,
+        edition_id: editionEl.value,
+        due_date: dueDateEl.value
+    };
+
+    // Send request
     fetch('/issue_books/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            request_id: issue_id,
-            member_id: member.value,
-            edition_id: edition.value,
-            due_date: due_date.value,
-            status: status.value
-        })
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
     })
-    .then(r => r.json())
-    .then(data => {
-        const succ_msg = document.getElementById('edit_issue_succ_msg');
-        const error_msg = document.getElementById('edit_issue_err_msg');
-        succ_msg.classList.add('d-none'); error_msg.classList.add('d-none');
+        .then(res => res.json())
+        .then(data => {
+            spinner.classList.add('d-none');
+            btnText.innerText = 'Update Issue';
 
-        if (data.success) {
-            succ_msg.textContent = data.message; succ_msg.classList.remove('d-none');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            error_msg.textContent = data.message; error_msg.classList.remove('d-none');
-        }
-    });
+            if (data.success) {
+                successMsg.innerText = data.message;
+                successMsg.classList.remove('d-none');
+                // Optionally, update the UI table row with new values
+            } else {
+                errorMsg.innerText = data.message;
+                errorMsg.classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            spinner.classList.add('d-none');
+            btnText.innerText = 'Update Issue';
+            errorMsg.innerText = 'Server error. Please try again.';
+            errorMsg.classList.remove('d-none');
+            console.error(err);
+        });
 }

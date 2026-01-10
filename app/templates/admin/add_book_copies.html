@@ -46,10 +46,14 @@
                                 <label class="form-label">Edition</label>
                                 <select name="edition_id" class="form-control">
                                     <option value="">Select Edition</option>
-                                    {% for book,edition in books_with_editions %}
+                                    {% for book in books %}
+                                    {%for edition in editions%}
+                                    {%if book.book_id == edition.book_id%}
                                     <option value="{{ edition.edition_id }}">
                                         {{ edition.edition_number }} - {{ book.title }}
                                     </option>
+                                    {%endif%}
+                                    {%endfor%}
                                     {% endfor %}
                                 </select>
                                 <div id="edition_id_error" class="invalid-feedback"></div>

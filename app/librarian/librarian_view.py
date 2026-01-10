@@ -3,21 +3,76 @@ from flask import render_template, request, make_response, jsonify, session, red
 from app.librarian.librarian_model import LibrarianModel, LibrarianDatabase, check_librarian_model_connection
 from flask_bcrypt import Bcrypt, check_password_hash
 import os, re
+from datetime import datetime, date
 from datetime import datetime
 from werkzeug.utils import secure_filename
+
+# Helper function for session management
+def get_session_data():
+    """Retrieve session data."""
+    return session.get('email')
+
+#=====================================================#
+#====== CONTEXT PROCESSOR TO GIVE DATA ALL PAGES =====#
+
+@app.context_processor
+def inject_librarian_data():
+    """Automatically inject librarian data into all templates"""
+    context = {
+        'librarian': None
+    }
+    email = session.get('email')
+    if email:
+        connection_status, librarian_model = check_librarian_model_connection()
+        if connection_status:
+            try:
+                librarian_data = librarian_model.check_login_librarian(email)
+                if librarian_data:
+                    print("Data get",librarian_data)
+                    context.update({
+                        'librarian': librarian_data
+                    })
+                    return context
+            except Exception as e:
+                app.logger.error(f"Error loading librarian data: {str(e)}")
+    return context
+
 
 #Librarian Login page
 @app.route('/librarian/login_page')
 def login_page_librarian():
-    return render_template('librarian/login.html')
+    return render_template('admin/login_librarian.html')
 
 #librarian dashboard page
 @app.route('/librarian/dashboard_page')
 def dashboard_page_librarian():
-    return render_template('admin/dashboard_librarian.html')
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
+    connect_status, librarian_model = check_librarian_model_connection()
+    if not connect_status:
+        return jsonify({"Database connection failed."})
+    stats = {
+        "total_books": librarian_model.total_books(),
+        "total_copies": librarian_model.total_copies(),
+        "available_copies": librarian_model.available_copies(),
+        "issued_books": librarian_model.issued_books(),
+        "overdue_books": librarian_model.overdue_books(),
+        "reserved_requests": librarian_model.reserved_requests(),
+        "in_library_reading": librarian_model.in_library_reading(),
+        "total_members": librarian_model.total_members()
+    }
+    print("stats",stats)
+    return render_template(
+        'admin/dashboard.html',
+        lib_stats=stats
+    )
 
 @app.route('/librarian/add_book_page')
 def add_book_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status,librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify({"Database connection failed."})
@@ -48,6 +103,9 @@ def add_book_page():
 
 @app.route('/librarian/add_edition_page')
 def add_edition_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status,librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify({"Database connection failed."})
@@ -61,6 +119,9 @@ def add_edition_page():
 
 @app.route('/librarian/add_copy_page')
 def add_copy_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status,librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify({"Database connection failed."})
@@ -74,14 +135,15 @@ def add_copy_page():
         return render_template("admin/add_book_copies.html",
                                books=books,
                                editions={})
-    paired_data = list(zip(books, editions))
     return render_template('admin/add_book_copies.html',
                            books=books,
-                           editions=editions,
-                           books_with_editions=paired_data)
+                           editions=editions)
 
 @app.route('/librarian/manage_books')
 def manage_books():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status,librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify({"Database connection failed."})
@@ -95,6 +157,9 @@ def manage_books():
 
 @app.route('/librarian/manage_editions')
 def manage_editions():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status,librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify({"Database connection failed."})
@@ -106,10 +171,14 @@ def manage_editions():
 
 @app.route('/librarian/manage_copies')
 def manage_copies():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status,librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify({"Database connection failed."})
     data_copies_table = librarian_model.read_copies_manage()
+    print(data_copies_table)
     if data_copies_table:
         return render_template('/admin/manage_book_copies.html',
                                copies =data_copies_table)
@@ -117,12 +186,14 @@ def manage_copies():
 #=====================================================#
 #============ CHECK FUNCTIONS ========================#
 
-#=====================================================#
+
 #============ CHECKING LOGIN =========================#
+#======== LOGIN OPERATIONS ===========================#
 @app.route('/librarian/login_librarian', methods=['POST'])
 def login_librarian():
     data = request.get_json()
 
+    print(f"The data recevied {data}")
     # Extract fields
     email = data.get('email', '').strip()
     password = data.get('password', '').strip()
@@ -133,14 +204,15 @@ def login_librarian():
         return jsonify({"Database connection failed."})
     result = librarian_model.check_login_librarian(email)
     if result:
-        if check_password_hash(result[0].get('password'), password):
+        print(result)
+        if check_password_hash(result.get('password'), password):
             print(result)
-            session['user_id'] = result[0].get('user_id')
-            session['email'] = result[0].get('email')
-            session['password'] = result[0].get('password')
+            session['librarian_id'] = result.get('user_id')
+            session['email'] = result.get('email')
+            session['password'] = result.get('password')
             return jsonify({
                 "success": True,
-                "message": "Admin gets successfully."
+                "message": "Librarian gets successfully."
             })
         else:
             return jsonify({
@@ -601,25 +673,26 @@ def get_requests_by_type(request_type):
 
 @app.route('/requests/borrow')
 def borrow_requests_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     borrow_requests = get_requests_by_type('borrow')
     return render_template('admin/borrow_requests.html', requests=borrow_requests, request_type='borrow')
 
 @app.route('/requests/return')
 def return_requests_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     return_requests = get_requests_by_type('return')
     return render_template('admin/return_requests.html', requests=return_requests, request_type='return')
 
-@app.route('/requests/reservation')
-def reservation_requests_page():
-    reservation_requests = get_requests_by_type('reservation')
-    return render_template('admin/reservation_requests.html', requests=reservation_requests, request_type='reservation')
 
-
-
-
-# ------------------ Render Page ------------------
 @app.route('/issue_books')
 def manage_issues():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
     connection_status, librarian_modal = check_librarian_model_connection()
     if not connection_status:
         return jsonify("Database connection failed")
@@ -627,7 +700,7 @@ def manage_issues():
     members = librarian_modal.get_members()
     books_with_editions = librarian_modal.get_books_with_editions()
     issues = librarian_modal.get_all_issues()
-
+    print(f"The data gets {books_with_editions}")
     return render_template('admin/issue_management.html',
                            issues=issues,
                            members=members,
@@ -637,9 +710,33 @@ def manage_issues():
 @app.route('/issue_books/insert', methods=['POST'])
 def insert_issue():
     data = request.get_json()
+    print(f"Data received {data}")
     member_id = data.get('member_id')
     edition_id = data.get('edition_id')
-    due_date = data.get('due_date')
+    due_date_str = data.get('due_date')
+
+    # Basic validation
+    if not member_id or not edition_id or not due_date_str:
+        return jsonify(
+            success=False,
+            message="All fields are required"
+        ), 400
+
+    # Date validation
+    try:
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify(
+            success=False,
+            message="Invalid due date format"
+        ), 400
+
+    if due_date <= date.today():
+        return jsonify(
+            success=False,
+            message="Due date must be greater than today"
+        ), 400
+
 
     connection_status, librarian_modal = check_librarian_model_connection()
     if not connection_status:
@@ -649,9 +746,87 @@ def insert_issue():
     copy = librarian_modal.get_available_copy(edition_id)
 
     if copy:
+        if librarian_modal.is_member_borrowed(edition_id, member_id):
+            return jsonify(success=False, message="Member borrowed already this book.")
         request_id = librarian_modal.create_borrowed_request(member_id, edition_id)
         librarian_modal.create_issue(copy['copy_id'], member_id, due_date,request_id)
         return jsonify({"success": True, "message": "Book issued successfully."})
+        librarian_modal.update_status(copy['copy_id'], 'borrowed')
     else:
         librarian_modal.create_reserved_request(member_id, edition_id)
         return jsonify({"success": False, "message": "No available copy. Request reserved."})
+
+@app.route('/issue_books/update', methods=['POST'])
+def update_issue():
+    data = request.get_json()
+    print(f"Data received for update: {data}")
+
+    issue_id = data.get('issue_id')
+    member_id = data.get('member_id')
+    edition_id = data.get('edition_id')
+    due_date_str = data.get('due_date')
+
+    # Basic validation
+    if not issue_id or not member_id or not edition_id or not due_date_str:
+        return jsonify(success=False, message="All fields are required"), 400
+
+    # Date validation
+    try:
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify(success=False, message="Invalid due date format"), 400
+
+    if due_date <= date.today():
+        return jsonify(success=False, message="Due date must be greater than today"), 400
+
+    # Check DB connection
+    connection_status, librarian_modal = check_librarian_model_connection()
+    if not connection_status:
+        return jsonify(success=False, message="Database connection failed"), 500
+
+    # Get current issue details
+    current_issue = librarian_modal.get_issue(issue_id)
+    if not current_issue:
+        return jsonify(success=False, message="Issue not found"), 404
+
+    current_edition_id = current_issue['edition_id']
+    current_copy_id = current_issue['copy_id']
+
+    # If edition is changed
+    if str(edition_id) != str(current_edition_id) and str(member_id) == str(current_issue['member_id']):
+        # Check available copy for new edition
+        copy = librarian_modal.get_available_copy(edition_id)
+
+        if copy:
+            if librarian_modal.is_member_borrowed(edition_id, member_id):
+                return jsonify(success=False, message="The new Member borrowed already this book.")
+            # Update issue with new copy and member
+            librarian_modal.update_issue(issue_id, member_id, due_date, copy['copy_id'])
+            # Update the request table if needed
+            librarian_modal.update_request(current_issue.get('request_id'), member_id, edition_id)
+            # Update old copy status to available
+            librarian_modal.update_status(current_copy_id, 'available')
+            # Update new copy status to borrowed
+            librarian_modal.update_status(copy['copy_id'], 'borrowed')
+            return jsonify(success=True, message="Issue updated with new edition successfully.")
+        else:
+            # No copy available: create reserved request
+            librarian_modal.create_reserved_request(member_id, edition_id)
+            librarian_modal.update_status_issue(issue_id, "returned")
+            return jsonify(success=False, message="No available copy for the selected edition. Request reserved.")
+    else:
+        if librarian_modal.is_reserved(current_issue.get('request_id'),edition_id, member_id):
+            return jsonify(success=False, message="Member borrowed already this book.")
+
+        # Edition not changed, just update member and due date
+        librarian_modal.update_issue(issue_id, member_id, edition_id, due_date, current_copy_id)
+        return jsonify(success=True, message="Issue updated successfully.")
+
+
+
+
+#Logout admin user
+@app.route('/librarian/logout')
+def logout_librarian():
+    session.clear()
+    return login_page_librarian()

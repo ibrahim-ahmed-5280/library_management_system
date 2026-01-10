@@ -371,6 +371,78 @@ class AdminModel:
             print(f'there is an error happen.')
             return False, f"Error {e}."
 
+    #=============== Dashboard data ======================#
+    def _rows_to_dict(self, rows):
+        columns = [col[0] for col in self.cursor.description]
+        return [dict(zip(columns, row)) for row in rows]
+
+    def total_books(self):
+        self.cursor.execute("SELECT COUNT(*) AS total FROM books")
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def total_members(self):
+        self.cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM users
+            WHERE role = 'member'
+        """)
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def borrowed_books(self):
+        self.cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM book_copies
+            WHERE status = 'borrowed'
+        """)
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def overdue_books(self):
+        self.cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM issues
+            WHERE status = 'borrowed'
+              AND due_date < CURDATE()
+        """)
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def total_staff(self):
+        self.cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM users
+            WHERE role IN ('admin', 'librarian')
+        """)
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def total_categories(self):
+        self.cursor.execute("SELECT COUNT(*) AS total FROM categories")
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def total_reservations(self):
+        self.cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM requests
+            WHERE request_type = 'reservation'
+              AND status = 'reserved'
+        """)
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
+    def new_books_this_month(self):
+        self.cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM books
+            WHERE MONTH(created_at) = MONTH(CURRENT_DATE())
+              AND YEAR(created_at) = YEAR(CURRENT_DATE())
+        """)
+        result = self._rows_to_dict(self.cursor.fetchall())
+        return result[0]['total']
+
 admin_db_configuration = DbConfiguration()
 
 
@@ -378,7 +450,7 @@ def check_admin_model_connection():
     try:
         mysql_connect = AdminDatabase(
             host=admin_db_configuration.DB_HOSTNAME,
-            port=3306,
+            port=3307,
             user=admin_db_configuration.DB_USERNAME,
             password=admin_db_configuration.DB_PASSWORD,
             database=admin_db_configuration.DB_NAME,

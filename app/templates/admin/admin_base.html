@@ -86,6 +86,7 @@
 
                 <!--- Sidemenu -->
                 <ul class="side-nav">
+                    {%if admin%}
 
                     <li class="side-nav-title side-nav-item">Admin</li>
 
@@ -142,12 +143,12 @@
                         </div>
                     </li>
 
-                    <li class="side-nav-item">
+                    <!-- <li class="side-nav-item">
                         <a href="#" class="side-nav-link">
                             <i class="uil uil-chart-line"></i>
                             <span> Reports </span>
                         </a>
-                    </li>
+                    </li> -->
                     <li class="side-nav-item">
                         <a data-bs-toggle="collapse" href="#sidebarSetting" aria-expanded="false"
                             aria-controls="sidebarSetting" class="side-nav-link">
@@ -172,6 +173,7 @@
                             <span> Logout </span>
                         </a>
                     </li>
+                    {%elif librarian%}
                     <li class="side-nav-title side-nav-item">Librarian</li>
                     <li class="side-nav-item">
                         <a href="{{url_for('dashboard_page_librarian')}}" class="side-nav-link">
@@ -251,9 +253,6 @@
                                 <li>
                                     <a href="{{url_for('return_requests_page')}}"> Return Requests</a>
                                 </li>
-                                <li>
-                                    <a href="{{url_for('reservation_requests_page')}}"> Reservation</a>
-                                </li>
                             </ul>
                         </div>
                     </li>
@@ -279,36 +278,37 @@
                         </a>
                     </li>
 
-                    <li class="side-nav-item">
+                    <!-- <li class="side-nav-item">
                         <a href="#" class="side-nav-link">
                             <i class="uil-chart-bar"></i>
                             <span> Reports </span>
                         </a>
-                    </li>
+                    </li> -->
 
                     <li class="side-nav-item">
-                        <a href="#" class="side-nav-link">
+                        <a href="{{url_for('logout_librarian')}}" class="side-nav-link">
                             <i class="uil uil-sign-out-alt"></i>
                             <span> Logout </span>
                         </a>
                     </li>
-                    <li class="side-nav-title side-nav-item">Member</li>
+                    {%endif%}
+                    <!-- <li class="side-nav-title side-nav-item">Member</li>
                     <li class="side-nav-item">
                         <a href="#" class="side-nav-link">
                             <i class="uil-home-alt"></i>
                             <span> Dashboard </span>
                         </a>
-                    </li>
+                    </li> -->
                     <!-- Search Books -->
-                    <li class="side-nav-item">
+                    <!-- <li class="side-nav-item">
                         <a href="#" class="side-nav-link">
                             <i class="uil-search"></i>
                             <span> Search Books </span>
                         </a>
-                    </li>
+                    </li> -->
 
                     <!-- My Library -->
-                    <li class="side-nav-item">
+                    <!-- <li class="side-nav-item">
                         <a data-bs-toggle="collapse" href="#sidebarMyLibrary" aria-expanded="false"
                             aria-controls="sidebarMyLibrary" class="side-nav-link">
                             <i class="uil-books"></i>
@@ -334,21 +334,21 @@
                                 </li>
                             </ul>
                         </div>
-                    </li>
+                    </li> -->
 
                     <!-- Fines -->
-                    <li class="side-nav-item">
+                    <!-- <li class="side-nav-item">
                         <a href="#" class="side-nav-link">
                             <i class="uil-money-bill"></i>
                             <span> Fines </span>
                         </a>
-                    </li>
-                    <li class="side-nav-item">
+                    </li> -->
+                    <!-- <li class="side-nav-item">
                         <a href="#" class="side-nav-link">
                             <i class="uil uil-sign-out-alt"></i>
                             <span> Logout </span>
                         </a>
-                    </li>
+                    </li> -->
 
 
                 </ul>
@@ -489,13 +489,23 @@
                                 <span class="account-user-avatar bg-primary rounded-pill"
                                     style="width: 30px; height: 30px;">
                                     <span class="text-white d-flex justify-content-center" style="margin-top: 4px;">
+                                        {%if admin%}
                                         {{ admin.name.split()[0][0] ~ admin.name.split()[1][0] }}
+                                        {%elif librarian%}
+                                        {{ librarian.name.split()[0][0] ~ librarian.name.split()[1][0] }}
+                                        {%endif%}
                                     </span>
                                 </span>
                                 <span>
+                                    {%if admin%}
                                     <span class="account-user-name text-capitalize">{{ admin.name.split()[:2] | join('
                                         ') }}</span>
                                     <span class="account-position text-capitalize">{{admin.role}}</span>
+                                    {%elif librarian%}
+                                    <span class="account-user-name text-capitalize">{{ librarian.name.split()[:2] | join('
+                                        ') }}</span>
+                                    <span class="account-position text-capitalize">{{librarian.role}}</span>
+                                    {%endif%}
                                 </span>
                             </a>
                             <div
@@ -511,12 +521,18 @@
                                     <span>My Account</span>
                                 </a>
 
-
+                                {%if admin%}
                                 <!-- item-->
                                 <a href="{{url_for('logout_admin')}}" class="dropdown-item notify-item">
                                     <i class="mdi mdi-logout me-1"></i>
                                     <span>Logout</span>
                                 </a>
+                                {%elif librarian%}
+                                <a href="{{url_for('logout_librarian')}}" class="dropdown-item notify-item">
+                                    <i class="mdi mdi-logout me-1"></i>
+                                    <span>Logout</span>
+                                </a>
+                                {%endif%}
                             </div>
                         </li>
 

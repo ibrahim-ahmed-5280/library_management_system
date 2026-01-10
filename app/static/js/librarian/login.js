@@ -61,7 +61,7 @@ function login() {
     inputs.forEach(input => input.disabled = true);
     console.log(email, password)
     // --- Send data to backend ---
-    fetch('/admin/login_admin', { // Use relative path
+    fetch('/librarian/login_librarian', { // Use relative path
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -76,7 +76,7 @@ function login() {
     .then(data => {
         if (data.success) {
             // Success: Redirect to admin dashboard
-            window.location.href = '/admin/dashboard_page';
+            window.location.href = '/librarian/dashboard_page';
         } else {
             // Failure: Display backend error messages
             // 💡 ENHANCEMENT: Use a single generic error for improved security
