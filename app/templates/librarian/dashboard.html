@@ -1,0 +1,268 @@
+{% extends "librarian/librarian_base.html" %}
+
+{% block title %}Add user | LMS{% endblock %}
+
+{% block content %}
+<div class="row">
+
+    <!-- Welcome Card -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="d-flex align-items-end row">
+                <div class="col-sm-7">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Welcome Librarian! 📚</h5>
+                        <p class="mb-4">
+                            Here is today's library activity and statistics.
+                        </p>
+                        <a href="#" class="btn btn-sm btn-outline-primary">View Reports</a>
+                    </div>
+                </div>
+                <div class="col-sm-5 text-center text-sm-left">
+                    <div class="card-body pb-0 px-0 px-md-4">
+                        <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template_cdn/assets/img/illustrations/man-with-laptop-light.png"
+                            height="140" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Small Statistic Cards -->
+    <div class="col-12">
+        <div class="row">
+            <!-- Total Books -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Total Books</span>
+                            <h3 class="card-title mb-2">3,250</h3>
+                        </div>
+                        <div class="avatar bg-label-primary p-2 rounded">
+                            <i class="bx bx-book text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Borrowed Today -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Borrowed Today</span>
+                            <h3 class="card-title mb-2">38</h3>
+                        </div>
+                        <div class="avatar bg-label-info p-2 rounded">
+                            <i class="bx bx-book-open text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Members -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Total Members</span>
+                            <h3 class="card-title mb-2">1,143</h3>
+                        </div>
+                        <div class="avatar bg-label-warning p-2 rounded">
+                            <i class="bx bx-group text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In-Library Reading -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">In-Library Reading</span>
+                            <h3 class="card-title mb-2">57</h3>
+                        </div>
+                        <div class="avatar bg-label-success p-2 rounded">
+                            <i class="bx bx-library text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overdue Books -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Overdue Books</span>
+                            <h3 class="card-title mb-2">19</h3>
+                        </div>
+                        <div class="avatar bg-label-danger p-2 rounded">
+                            <i class="bx bx-time-five text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Books Available -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Available Books</span>
+                            <h3 class="card-title mb-2">2,850</h3>
+                        </div>
+                        <div class="avatar bg-label-secondary p-2 rounded">
+                            <i class="bx bx-book-alt text-secondary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Returned Today -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Returned Today</span>
+                            <h3 class="card-title mb-2">26</h3>
+                        </div>
+                        <div class="avatar bg-label-success p-2 rounded">
+                            <i class="bx bx-check-circle text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Reserved Books -->
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body d-flex align-items-start justify-content-between">
+                        <div>
+                            <span class="fw-light d-block mb-1">Reserved Books</span>
+                            <h3 class="card-title mb-2">78</h3>
+                        </div>
+                        <div class="avatar bg-label-info p-2 rounded">
+                            <i class="bx bx-calendar-star text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Second Row -->
+
+<div class="row">
+
+    <!-- Top Borrowed Categories -->
+    <div class="col-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="m-0">Top Borrowed Categories</h5>
+            </div>
+            <div class="card-body">
+                <div id="categoryChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Activity Chart -->
+    <div class="col-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="m-0">Daily Activity</h5>
+            </div>
+            <div class="card-body">
+                <div id="dailyActivityChart"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Include ApexCharts CDN -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const htmlElement = document.querySelector('html');
+        const isDark = htmlElement.classList.contains('dark-style');
+        
+        // Define colors based on the current theme
+        const darkTextColor = '#d8dfe8'; // Light gray text for dark mode
+        const chartGridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e0e0e0';
+        const chartLabelColor = isDark ? darkTextColor : '#6e6e6e';
+
+        // --- Top Borrowed Categories Chart (Bar) ---
+        var categoryChartOptions = {
+            chart: {
+                type: 'bar',
+                height: 300,
+                background: 'transparent',
+                toolbar: { show: false }
+            },
+            series: [{ name: 'Borrowed', data: [120, 90, 60, 30] }],
+            xaxis: { 
+                categories: ['Fiction', 'Science', 'Technology', 'Math'],
+                labels: {
+                    style: { colors: chartLabelColor } // Apply dynamic color
+                },
+                axisBorder: { show: true, color: chartGridColor },
+                axisTicks: { show: true, color: chartGridColor }
+            },
+            yaxis: {
+                labels: {
+                    style: { colors: chartLabelColor } // Apply dynamic color
+                },
+            },
+            grid: {
+                borderColor: chartGridColor, // Apply dynamic color
+            },
+            colors: ['#696cff'] // Primary color
+        };
+
+        var categoryChart = new ApexCharts(document.querySelector("#categoryChart"), categoryChartOptions);
+        categoryChart.render();
+
+        // --- Daily Activity Chart (Line) ---
+        var dailyChartOptions = {
+            chart: { 
+                type: 'line', 
+                height: 300,
+                background: 'transparent',
+                toolbar: { show: false }
+            },
+            series: [{ name: 'Books Borrowed', data: [5, 10, 7, 15, 20, 12, 8] }],
+            xaxis: { 
+                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: {
+                    style: { colors: chartLabelColor } // Apply dynamic color
+                },
+                axisBorder: { show: true, color: chartGridColor },
+                axisTicks: { show: true, color: chartGridColor }
+            },
+            yaxis: {
+                labels: {
+                    style: { colors: chartLabelColor } // Apply dynamic color
+                },
+            },
+            grid: {
+                borderColor: chartGridColor, // Apply dynamic color
+            },
+            stroke: { curve: 'smooth' },
+            colors: ['#28C76F'] // Green color (Success)
+        };
+        
+        var dailyChart = new ApexCharts(document.querySelector("#dailyActivityChart"), dailyChartOptions);
+        dailyChart.render();
+    });
+</script>
+
+{% endblock %}

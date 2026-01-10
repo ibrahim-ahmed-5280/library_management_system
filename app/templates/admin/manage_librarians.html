@@ -1,0 +1,279 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Manage Librarians | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Librarian</a></li>
+                    <li class="breadcrumb-item active">View</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Librarians</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Date created</th>
+                            <th>Actions</th>
+                        </tr>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+                        {%if librarian_data%}
+                        {%for librarian in librarian_data%}
+                        <tr>
+                            <td class="align-middle">{{librarian.user_id}}</td>
+                            <td class="align-middle">{{librarian.name}}</td>
+                            <td class="align-middle">{{librarian.email}}</td>
+                            <td class="align-middle">{{librarian.role}}</td>
+                            <td class="align-middle">{{librarian.status}}</td>
+                            <td class="align-middle">{{librarian.created_at}}</td>
+                            <td class="align-middle">
+                                <div class="dropdown dropstart">
+                                    <div class="dropdown dropstart">
+                                        <!-- Dropdown Toggle Button -->
+                                        <a href="#" class="action-icon" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="mdi mdi-dots-vertical"></i>
+                                        </a>
+                                        <!-- Dropdown Menu (appears only when opened) -->
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                    data-bs-target="#updateUserModal{{ librarian.user_id }}"
+                                                    data-id="{{ librarian.user_id }}">
+                                                    <i class="mdi mdi-square-edit-outline me-1"></i> Edit Details
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                    data-bs-target="#updatePasswordModal{{ librarian.user_id }}"
+                                                    data-id="{{ librarian.user_id }}">
+                                                    <i class="mdi mdi-lock-outline me-1"></i> Change Password
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+
+                                </div>
+                            </td>
+                            <!-- Modal for librarian details change -->
+                            <div class="modal fade" id="updateUserModal{{ librarian.user_id }}" tabindex="-1"
+                                aria-labelledby="updateUserModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updateUserModalLabel">Update librarian
+                                                details
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="user_form{{ librarian.user_id }}" novalidate>
+                                                <div class="row">
+                                                    <div class="alert alert-success my-2" role="alert"
+                                                        id="succ_msg{{ librarian.user_id }}" style="display: none;">
+                                                        A simple success alert—check it out!
+                                                    </div>
+                                                    <div class="alert alert-danger my-2" role="alert"
+                                                        id="err_msg{{ librarian.user_id }}" style="display: none;">
+                                                        A simple danger alert—check it out!
+                                                    </div>
+                                                    <!-- Name -->
+                                                    <div class="col-md-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Full Name</label>
+                                                            <input id="user_name{{ librarian.user_id }}" type="text"
+                                                                class="form-control" value="{{librarian.name}}"
+                                                                placeholder="Enter librarian full name" required>
+                                                            <div id="user_name_error{{ librarian.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Email -->
+                                                    <div class="col-md-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Email</label>
+                                                            <input id="user_email{{ librarian.user_id }}" type="email"
+                                                                value="{{librarian.email}}" class="form-control"
+                                                                placeholder="Enter librarian email" required>
+                                                            <div id="user_email_error{{ librarian.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- status -->
+                                                    <div class="col-md-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Status</label>
+                                                            <select class="form-select"
+                                                                name="user_status{{ librarian.user_id }}"
+                                                                id="user_status{{ librarian.user_id }}">
+                                                                {%if librarian.status == 'active'%}
+                                                                <option value="{{librarian.status}}" selected>
+                                                                    {{librarian.status}}</option>
+                                                                <option value="inactive">Inactive</option>
+                                                                {%elif librarian.status == 'inactive'%}
+                                                                <option value="{{librarian.status}}" selected>
+                                                                    {{librarian.status}}</option>
+                                                                <option value="active">Active</option>
+                                                                {%endif%}
+                                                            </select>
+                                                            <div id="user_status_error{{ librarian.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-end mt-2">
+                                                        <button id="user_btn{{ librarian.user_id }}"
+                                                            onclick="update_user('{{ librarian.user_id }}')"
+                                                            class="btn btn-primary" type="button">
+                                                            <span id="user_spinner{{ librarian.user_id }}"
+                                                                class="spinner-border spinner-border-sm d-none"></span>
+                                                            <span id="user_btn_text{{ librarian.user_id }}">
+                                                                Update User
+                                                            </span>
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- update password -->
+                            <div class="modal fade" id="updatePasswordModal{{ librarian.user_id }}" tabindex="-1"
+                                aria-labelledby="updatePasswordModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updatePasswordModalLabel">Update librarian
+                                                details
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="password_form{{ librarian.user_id }}" class="needs-validation"
+                                                novalidate>
+                                                <div class="alert alert-success d-none" role="alert"
+                                                    id="succ_msg_pass{{ librarian.user_id }}">
+                                                    A simple success alert—check it out!
+                                                </div>
+                                                <div class="alert alert-danger d-none" role="alert"
+                                                    id="err_msg_pass{{ librarian.user_id }}">
+                                                    A simple danger alert—check it out!
+                                                </div>
+                                                <input type="hidden" id="id_pass{{ librarian.user_id }}"
+                                                    value="{{ librarian.user_id }}">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label for="user_password{{ librarian.user_id }}"
+                                                                class="form-label">New
+                                                                Password</label>
+                                                            <div class="input-group">
+                                                                <input id="user_password{{ librarian.user_id }}"
+                                                                    type="password" class="form-control"
+                                                                    placeholder="Update password" required>
+
+                                                                <span class="input-group-text" style="cursor:pointer"
+                                                                    onclick="togglePassword('user_password{{ librarian.user_id }}','_pass{{ librarian.user_id }}')">
+                                                                    <i id="eye_icon_pass{{ librarian.user_id }}"
+                                                                        class="uil uil-eye"></i>
+                                                                </span>
+
+                                                                <div id="user_password_error{{ librarian.user_id }}"
+                                                                    class="invalid-feedback">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label for="user_confirm{{ librarian.user_id }}"
+                                                                class="form-label">Confirm New
+                                                                Password</label>
+                                                            <div class="input-group">
+                                                                <input id="user_confirm{{ librarian.user_id }}"
+                                                                    type="password" class="form-control"
+                                                                    placeholder="Update confirm password" required>
+
+                                                                <span class="input-group-text" style="cursor:pointer"
+                                                                    onclick="togglePassword('user_confirm{{ librarian.user_id }}','_confirm{{ librarian.user_id }}')">
+                                                                    <i id="eye_icon_confirm{{ librarian.user_id }}"
+                                                                        class="uil uil-eye"></i>
+                                                                </span>
+
+                                                                <div id="user_confirm_error{{ librarian.user_id }}"
+                                                                    class="invalid-feedback">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-4">
+                                                    <div class="d-flex justify-content-end mt-2">
+                                                        <button id="user_btn_pass{{ librarian.user_id }}"
+                                                            onclick="change_password_user('{{ librarian.user_id }}')"
+                                                            class="btn btn-primary" type="button">
+                                                            <span id="user_spinner_pass{{ librarian.user_id }}"
+                                                                class="spinner-border spinner-border-sm d-none"></span>
+                                                            <span id="user_btn_pass_text{{ librarian.user_id }}">
+                                                                Update Password
+                                                            </span>
+                                                        </button>
+
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </tr>
+                        {%endfor%}
+                        {%endif%}
+                    </tbody>
+                </table>
+            </div> <!-- end card body-->
+        </div> <!-- end card -->
+    </div><!-- end col-->
+</div>
+<!-- end row-->
+<script src="{{url_for('static', filename = 'js/admin/update.js')}}"></script>
+<script src="{{url_for('static', filename = 'js/admin/toggle_password.js')}}"></script>
+{% endblock %}

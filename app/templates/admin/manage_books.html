@@ -1,0 +1,148 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Manage Books | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Book</a></li>
+                    <li class="breadcrumb-item active">View</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Books</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Editions</th>
+                            <th>Copies</th>
+                            <th>Date Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if books %}
+                        {% for book in books %}
+                        <tr>
+                            <td class="align-middle">{{ book.book_id }}</td>
+                            <td class="align-middle" id="book_title_cell_{{ book.book_id }}">{{ book.title }}</td>
+                            <td class="align-middle" id="book_author_cell_{{ book.book_id }}">{{ book.author_name }}
+                            </td>
+                            <td class="align-middle" id="book_category_cell_{{ book.book_id }}">{{ book.category_name or
+                                'Uncategorized' }}</td>
+                            <td class="align-middle"><span class="badge bg-info">{{ book.editions_count }}</span></td>
+                            <td class="align-middle"><span class="badge bg-success">{{ book.copies_count }}</span></td>
+                            <td class="align-middle">{{ book.created_at }}</td>
+                            <td class="align-middle">
+                                <div class="dropdown dropstart">
+                                    <a href="#" class="action-icon" data-bs-toggle="dropdown">
+                                        <i class="mdi mdi-dots-vertical"></i>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#updateBookModal{{ book.book_id }}">
+                                                <i class="mdi mdi-square-edit-outline me-1"></i> Edit Book
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- ================= UPDATE BOOK MODAL ================= -->
+                        <div class="modal fade" id="updateBookModal{{ book.book_id }}" tabindex="-1">
+                            <div class="modal-dialog modal-md">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Update Book</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="book_form{{ book.book_id }}" novalidate>
+
+                                            <div class="alert alert-success"
+                                                id="book_succ_msg{{ book.book_id }}" style="display: none;"></div>
+                                            <div class="alert alert-danger" id="book_err_msg{{ book.book_id }}" style="display: none;">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Book Title</label>
+                                                <input type="text" class="form-control"
+                                                    id="book_title{{ book.book_id }}" value="{{ book.title }}">
+                                                <div class="invalid-feedback" id="book_title_error{{ book.book_id }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Book Author</label>
+                                                <input type="text" class="form-control"
+                                                    id="book_author{{ book.book_id }}" value="{{ book.author_name }}">
+                                                <div class="invalid-feedback" id="book_author_error{{ book.book_id }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Category</label>
+                                                <select class="form-control" id="book_category{{ book.book_id }}">
+                                                    <option value="">Select Category</option>
+                                                    {% for category in categories %}
+                                                    <option value="{{ category.category_id }}" {% if
+                                                        category.name==book.category_name %} selected {% endif %}>
+                                                        {{ category.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <div class="invalid-feedback"
+                                                    id="book_category_error{{ book.book_id }}"></div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary"
+                                                    onclick="update_book('{{ book.book_id }}','{{author_id}}')">
+                                                    <span id="book_spinner{{ book.book_id }}"
+                                                        class="spinner-border spinner-border-sm d-none"></span>
+                                                    <span id="book_btn_text{{ book.book_id }}">Update Book</span>
+                                                </button>
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </div> <!-- end card body-->
+        </div> <!-- end card -->
+    </div><!-- end col-->
+</div>
+<!-- end row-->
+<script src="{{url_for('static', filename='js/librarian/update_book.js')}}"></script>
+{% endblock %}

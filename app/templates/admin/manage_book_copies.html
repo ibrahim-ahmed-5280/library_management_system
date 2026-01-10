@@ -1,0 +1,205 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Manage Copies | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Copies</a></li>
+                    <li class="breadcrumb-item active">View</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Copies</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Book</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Edition</th>
+                            <th>Status</th>
+                            <th>Date Added</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if copies %}
+                        {% for copy in copies %}
+                        <tr id="copy_row_{{ copy.copy_id }}">
+                            <td class="align-middle">{{ copy.copy_id }}</td>
+
+                            <td class="align-middle">
+                                <i class="uil-book me-1"></i>
+                                {{ copy.book_title }}
+                            </td>
+
+                            <td class="align-middle">{{ copy.author_name }}</td>
+
+                            <td class="align-middle">
+                                {{ copy.category_name or 'Uncategorized' }}
+                            </td>
+
+                            <td class="align-middle">
+                                <span class="badge bg-info">
+                                    <i class="uil-copy-alt me-1"></i>
+                                    {{ copy.edition_number or 'N/A' }}
+                                </span>
+                            </td>
+
+                            <td class="align-middle">
+                                {% if copy.status == 'available' %}
+                                <span class="badge bg-success">Available</span>
+                                {% elif copy.status == 'borrowed' %}
+                                <span class="badge bg-warning">Borrowed</span>
+                                {% elif copy.status == 'lost' %}
+                                <span class="badge bg-danger">Lost</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ copy.status }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="align-middle">{{ copy.created_at }}</td>
+
+                            <td class="align-middle">
+                                <div class="dropdown dropstart">
+                                    <a href="#" class="action-icon" data-bs-toggle="dropdown">
+                                        <i class="mdi mdi-dots-vertical"></i>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#updateCopyModal{{ copy.copy_id }}">
+                                                <i class="mdi mdi-square-edit-outline me-1"></i>
+                                                Update Status
+                                            </a>
+                                        </li>
+                                        <!-- Delete option: only show if status is available -->
+                                        {% if copy.status == 'available' %}
+                                        <li>
+                                            <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#deleteCopyModal{{ copy.copy_id }}">
+                                                <i class="mdi mdi-delete-outline me-1"></i>
+                                                Delete copy
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- ================= UPDATE COPY MODAL ================= -->
+                        <div class="modal fade" id="updateCopyModal{{ copy.copy_id }}" tabindex="-1">
+                            <div class="modal-dialog modal-md">
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Update Copy Status</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <form id="status_copy_change{{ copy.copy_id }}" novalidate>
+
+                                            <div class="alert alert-success d-none"
+                                                id="copy_succ_msg{{ copy.copy_id }}"></div>
+                                            <div class="alert alert-danger d-none" id="copy_err_msg{{ copy.copy_id }}">
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-control" id="copy_status{{ copy.copy_id }}">
+                                                    {% for st in
+                                                    ['available','lost','damaged','maintenance']
+                                                    %}
+                                                    <option value="{{ st }}" {% if st==copy.status %}selected{% endif
+                                                        %}>
+                                                        {{ st|capitalize }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <div class="invalid-feedback" id="copy_status_error{{ copy.copy_id }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary"
+                                                    onclick="update_copy_status('{{ copy.copy_id }}')">
+                                                    Update
+                                                </button>
+                                            </div>
+
+                                        </form>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ================= DELETE COPY MODAL ================= -->
+                        <div class="modal fade" id="deleteCopyModal{{ copy.copy_id }}" tabindex="-1">
+                            <div class="modal-dialog modal-md">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Delete Copy</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-success" role="alert" id="succ{{copy.copy_id}}"
+                                            style="display: none;">
+                                            A simple success alert—check it out!
+                                        </div>
+                                        <div class="alert alert-danger" role="alert" id="error{{copy.copy_id}}"
+                                            style="display: none;">
+                                            A simple danger alert—check it out!
+                                        </div>
+                                        <p>Are you sure you want to delete copy <strong>#{{ copy.copy_id }}</strong>?
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-danger" id="delete_btn{{copy.copy_id}}"
+                                            onclick="delete_copy('{{ copy.copy_id }}')">
+                                            <span id="delete_spinner_{{ copy.copy_id }}"
+                                                class="spinner-border spinner-border-sm d-none"></span>
+                                                <span id="text_btn{{copy.copy_id}}">Delete</span>
+                                            
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </div> <!-- end card body-->
+        </div> <!-- end card -->
+    </div><!-- end col-->
+</div>
+<!-- end row-->
+<script src="{{url_for('static', filename='js/librarian/manage_copies.js')}}"></script>
+{% endblock %}

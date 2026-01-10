@@ -1,0 +1,150 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Manage Policy | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Policy Name</th>
+                            <th>Policy Key</th>
+                            <th>Policy Value</th>
+                            <th>Admin created</th>
+                            <th>Admin updated</th>
+                            <th>Date create</th>
+                            <th>Date updated</th>
+                            <th>Actions</th>
+                        </tr>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+                        {%if policy_data%}
+                        {%for policy in policy_data%}
+                        <tr>
+                            <td>{{policy.policy_id}}</td>
+                            <td>{{policy.policy_name}}</td>
+                            <td>{{policy.policy_key}}</td>
+                            <td>{{policy.policy_value}}</td>
+                            <td>{{policy.created_by}}</td>
+                            <td>{{policy.updated_by}}</td>
+                            <td>{{policy.created_at}}</td>
+                            <td>{{policy.updated_at}}</td>
+                            <td class="align-middle">
+                                <a href="#" class="action-icon" data-bs-toggle="modal"
+                                    data-bs-target="#updatePolicyModal{{ policy.policy_id }}"
+                                    data-id="{{ policy.policy_id }}">
+                                    <i class="mdi mdi-square-edit-outline"></i>
+                                </a>
+                            </td>
+                            <div class="modal fade" id="updatePolicyModal{{ policy.policy_id }}" tabindex="-1"
+                                aria-labelledby="updatePolicyModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updatePolicyModalLabel">Update librarian
+                                                details
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-success" role="alert" id="succ_msg{{ policy.policy_id }}"
+                                                style="display: none;">
+                                                A simple success alert—check it out!
+                                            </div>
+                                            <div class="alert alert-danger" role="alert" id="err_msg{{ policy.policy_id }}"
+                                                style="display: none;">
+                                                A simple danger alert—check it out!
+                                            </div>
+                                            <form id="policy_form{{ policy.policy_id }}" novalidate>
+                                                <div class="row">
+
+                                                    <!-- policy Name -->
+                                                    <div class="col-md-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Policy Name</label>
+                                                            <input id="policy_name{{ policy.policy_id }}" type="text"
+                                                                class="form-control" placeholder="Enter policy name"
+                                                                value="{{policy.policy_name}}" required>
+                                                            <div id="policy_name_error{{ policy.policy_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Policy key -->
+                                                    <div class="col-md-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Policy Key</label>
+                                                            <input id="policy_key{{ policy.policy_id }}" type="text"
+                                                                class="form-control" placeholder="Enter Policy Key"
+                                                                value="{{policy.policy_key}}" required>
+                                                            <div id="policy_key_error{{ policy.policy_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Policy value -->
+                                                    <div class="col-md-4">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Policy Value</label>
+                                                            <input id="policy_value{{ policy.policy_id }}" type="text"
+                                                                class="form-control" placeholder="Enter Policy Value"
+                                                                value="{{policy.policy_value}}" required>
+                                                            <div id="policy_value_error{{ policy.policy_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Description -->
+                                                    <div class="col-12">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Description</label>
+                                                            <textarea class="form-control" name="description"
+                                                                id="description{{ policy.policy_id }}"
+                                                                placeholder="Enter description" required
+                                                                rows="4">{{policy.description}}</textarea>
+                                                            <div id="description_error{{ policy.policy_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-end mt-2">
+                                                        <button id="policy_btn{{ policy.policy_id }}"
+                                                            onclick="update_policy('{{ policy.policy_id }}')"
+                                                            class="btn btn-primary" type="button">
+                                                            <span id="policy_spinner{{ policy.policy_id }}"
+                                                                class="spinner-border spinner-border-sm d-none"></span>
+                                                            <span id="policy_btn_text{{ policy.policy_id }}">Update
+                                                                Policy</span>
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </tr>
+                        {%endfor%}
+                        {%endif%}
+                    </tbody>
+                </table>
+            </div> <!-- end card body-->
+        </div> <!-- end card -->
+    </div><!-- end col-->
+</div>
+<script src="{{url_for('static', filename = 'js/admin/update.js')}}"></script>
+{% endblock %}

@@ -1,0 +1,201 @@
+@charset "UTF-8";
+
+/* =========================================================================
+   DARK MODE SCOPE (html.dark-style)
+   All rules must be prefixed with 'html.dark-style' for the toggle to work.
+   ========================================================================= */
+html.dark-style {
+  /* --- 1. CORE DARK MODE VARIABLES --- */
+  --bs-body-bg: #2b3645; /* Main dark background */
+  --bs-body-color: #e2e4e6; /* Light gray text */
+  --bs-body-bg-rgb: 35, 52, 70;
+  --bs-body-color-rgb: 233, 234, 239;
+
+  /* Inverted Utility Colors for Components */
+  --bs-white:#35414e; /* Component Backgrounds (Cards, Modals, Dropdowns) */
+  --bs-light: #435971; /* Dark mode "light" */
+  --bs-dark: #a9acac; /* Dark mode "dark" utility color */
+
+  /* Grayscale values for borders and subtle backgrounds */
+  --bs-gray: rgba(255, 255, 255, 0.1);
+  --bs-gray-dark: rgba(255, 255, 255, 0.8);
+  --bs-gray-25: rgba(255, 255, 255, 0.025);
+  --bs-gray-50: rgba(255, 255, 255, 0.05);
+
+  /* Secondary color adjusted for better contrast */
+  --bs-secondary: #748496;
+  --bs-secondary-rgb: 116, 132, 150;
+
+  /* Link/Primary hover for contrast */
+  --bs-primary-hover: #797bec;
+}
+
+
+/* =========================================================================
+   2. GLOBAL ELEMENT OVERRIDES
+   ========================================================================= */
+
+html.dark-style body {
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg);
+}
+
+html.dark-style h1, html.dark-style h2, html.dark-style h3,
+html.dark-style h4, html.dark-style h5, html.dark-style h6 {
+  color: #d8dfe8; /* Lighter headings */
+}
+
+html.dark-style hr {
+  color: #4a5766; /* Darker divider */
+}
+
+html.dark-style a {
+  color: var(--bs-primary);
+}
+html.dark-style a:hover {
+  color: var(--bs-primary-hover);
+}
+
+
+/* =========================================================================
+   3. LAYOUT & NAVIGATION OVERRIDES (Sidebar/Navbar/Footer)
+   ========================================================================= */
+
+/* --- SIDEBAR/MENU --- */
+html.dark-style .bg-menu-theme {
+    background-color: #2b3848 !important; /* Slightly darker than body for menu separation */
+    color: var(--bs-body-color);
+}
+
+/* Menu Item Hover/Focus State */
+html.dark-style .layout-wrapper:not(.layout-horizontal) .bg-menu-theme .menu-inner .menu-item .menu-link:not(.active):hover,
+html.dark-style .layout-menu-hover.layout-menu-collapsed .bg-menu-theme .menu-inner .menu-item .menu-link:not(.active):hover,
+html.dark-style .layout-menu-fixed-offcanvas.layout-menu-collapsed .bg-menu-theme .menu-inner .menu-item .menu-link:not(.active):hover {
+  color: #a1acb8;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Menu Active Sub-item Dot/Border */
+html.dark-style .bg-menu-theme .menu-sub > .menu-item > .menu-link:before {
+  border: 3px solid var(--bs-body-bg) !important;
+}
+html.dark-style .bg-menu-theme .menu-sub > .menu-item.active > .menu-link:not(.menu-toggle):before {
+  border: 3px solid #2c3c4f !important;
+}
+
+/* Layout Menu Toggle Button Border */
+html.dark-style .app-brand .layout-menu-toggle {
+  border: 7px solid #2b3848; /* Use menu background color */
+}
+
+/* --- NAVBAR --- */
+html.dark-style .bg-navbar-theme {
+    background-color: var(--bs-body-bg) !important; /* Use main background color for fluid look */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- FOOTER --- */
+html.dark-style .bg-footer-theme {
+    background-color: #2b3848 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+/* =========================================================================
+   4. COMPONENT OVERRIDES (Cards, Dropdowns, Forms)
+   ========================================================================= */
+
+/* --- CARDS --- */
+html.dark-style .card {
+    background-color: var(--bs-white) !important; /* Use dark mode 'white' variable (#283648) */
+    color: var(--bs-body-color);
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark-style .card-header,
+html.dark-style .card-footer {
+    background-color: var(--bs-gray-50) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- DROPDOWNS & MODALS --- */
+html.dark-style .dropdown-menu,
+html.dark-style .dropdown-item,
+html.dark-style .modal-content {
+    background-color: var(--bs-white); /* Use dark mode 'white' variable */
+    color: var(--bs-body-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark-style .dropdown-item:hover,
+html.dark-style .dropdown-item:focus {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--bs-body-color);
+}
+
+/* --- FORM CONTROLS --- */
+html.dark-style .form-control,
+html.dark-style .form-select {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--bs-body-color);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.dark-style .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* --- BUTTONS (Adjusting 'light' variants for visibility) --- */
+html.dark-style .btn-light {
+    color: var(--bs-body-color);
+    background-color: var(--bs-gray-50);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.dark-style .btn-outline-light {
+    color: var(--bs-body-color);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* --- Added for Password Toggle Icon Background --- */
+html.dark-style .input-group-text {
+    background-color: rgba(255, 255, 255, 0.05) !important; /* Matches form control background */
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: var(--bs-body-color);
+}
+
+/* --- Added for Card Icons (All Blue/Primary with Subtle Background) --- */
+/* Override all bg-label-* classes to use the Primary color scheme */
+html.dark-style .bg-label-primary,
+html.dark-style .bg-label-info,
+html.dark-style .bg-label-warning,
+html.dark-style .bg-label-success,
+html.dark-style .bg-label-danger,
+html.dark-style .bg-label-secondary {
+    /* Use a very light, transparent background color for the 'label' effect */
+    background-color: rgba(105, 108, 255, 0.1) !important;
+    /* Ensure the icon color inside is the Primary color */
+    color: var(--bs-primary) !important; 
+}
+
+/* Ensure the icons inside the avatar use the Primary color */
+html.dark-style .bg-label-primary i,
+html.dark-style .bg-label-info i,
+html.dark-style .bg-label-warning i,
+html.dark-style .bg-label-success i,
+html.dark-style .bg-label-danger i,
+html.dark-style .bg-label-secondary i {
+    color: var(--bs-primary) !important;
+}
+
+/* Since you want the icon color to be different from the background,
+   we need to explicitly set the text/icon color for each one to Primary */
+html.dark-style .text-primary,
+html.dark-style .text-info,
+html.dark-style .text-warning,
+html.dark-style .text-success,
+html.dark-style .text-danger,
+html.dark-style .text-secondary {
+    /* In dark mode, all card icons will use the primary color for a consistent look */
+    color: var(--bs-primary) !important;
+}

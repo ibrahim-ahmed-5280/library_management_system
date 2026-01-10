@@ -1,0 +1,112 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Add Librarians | LMS{% endblock %}
+
+{% block content %}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Add</a></li>
+                    <li class="breadcrumb-item active">Librarian</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Registration Librarian</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-success" role="alert" id="succ_msg" style="display: none;">
+                    A simple success alert—check it out!
+                </div>
+                <div class="alert alert-danger" role="alert" id="err_msg" style="display: none;">
+                    A simple danger alert—check it out!
+                </div>
+                <!-- ====================== LIBRARIAN FORM ====================== -->
+                <form id="librarian_form" novalidate>
+                    <div class="row">
+
+                        <!-- Name -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input id="lib_name" type="text" class="form-control"
+                                    placeholder="Enter librarian full name" required>
+                                <div id="lib_name_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input id="lib_email" type="email" class="form-control"
+                                    placeholder="Enter librarian email" required>
+                                <div id="lib_email_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+
+                                <div class="input-group">
+                                    <input id="lib_password" type="password" class="form-control"
+                                        placeholder="Create password" required>
+
+                                    <span class="input-group-text" style="cursor:pointer" onclick="togglePassword('lib_password','_pass')">
+                                        <i id="eye_icon_pass" class="uil uil-eye"></i>
+                                    </span>
+
+                                    <div id="lib_password_error" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Confirm Password -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+
+                                <div class="input-group">
+                                    <input id="lib_confirm" type="password" class="form-control"
+                                        placeholder="confirm password" required>
+
+                                    <span class="input-group-text" style="cursor:pointer" onclick="togglePassword('lib_confirm','_confirm')">
+                                        <i id="eye_icon_confirm" class="uil uil-eye"></i>
+                                    </span>
+
+                                    <div id="lib_confirm_error" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="d-flex justify-content-end mt-2">
+                            <button id="lib_btn" onclick="register_librarian()" class="btn btn-primary" type="button">
+                                <span id="lib_spinner" class="spinner-border spinner-border-sm d-none"></span>
+                                <span id="lib_btn_text">Register Librarian</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="{{url_for('static', filename = 'js/admin/registration.js')}}"></script>
+<script src="{{url_for('static', filename = 'js/admin/toggle_password.js')}}"></script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Add Admins | LMS{% endblock %}
+
+{% block content %}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Add</a></li>
+                    <li class="breadcrumb-item active">Admin</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Registration Admin</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-success" role="alert" id="succ_msg" style="display: none;">
+                    A simple success alert—check it out!
+                </div>
+                <div class="alert alert-danger" role="alert" id="err_msg" style="display: none;">
+                    A simple danger alert—check it out!
+                </div>
+                <!-- ====================== ADMIN FORM ====================== -->
+                <form id="admin_form" novalidate>
+                    <div class="row">
+
+                        <!-- Name -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input id="admin_name" type="text" class="form-control"
+                                    placeholder="Enter admin full name" required>
+                                <div id="admin_name_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input id="admin_email" type="email" class="form-control"
+                                    placeholder="Enter admin email" required>
+                                <div id="admin_email_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+
+                                <div class="input-group">
+                                    <input id="admin_password" type="password" class="form-control"
+                                        placeholder="Create password" required>
+
+                                    <span class="input-group-text" style="cursor:pointer"
+                                        onclick="togglePassword('admin_password','_pass')">
+                                        <i id="eye_icon_pass" class="uil uil-eye"></i>
+                                    </span>
+
+                                    <div id="admin_password_error" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- confirm password -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+
+                                <div class="input-group">
+                                    <input id="confirm_password" type="password" class="form-control"
+                                        placeholder="confirm password" required>
+
+                                    <span class="input-group-text" style="cursor:pointer"
+                                        onclick="togglePassword('confirm_password','_confirm')">
+                                        <i id="eye_icon_confirm" class="uil uil-eye"></i>
+                                    </span>
+
+                                    <div id="confirm_password_error" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-2">
+                            <button id="admin_btn" onclick="register_admin()" class="btn btn-primary" type="button">
+                                <span id="admin_spinner" class="spinner-border spinner-border-sm d-none"></span>
+                                <span id="admin_btn_text">Register Admin</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="{{url_for('static', filename = 'js/admin/registration.js')}}"></script>
+<script src="{{url_for('static', filename = 'js/admin/toggle_password.js')}}"></script>
+{% endblock %}

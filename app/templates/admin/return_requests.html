@@ -1,0 +1,125 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Return Requests | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Return</a></li>
+                    <li class="breadcrumb-item active">View</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Returns</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Book</th>
+                            <th>Edition</th>
+                            <th>Status</th>
+                            <th>Requested On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr id="request_row_{{ req.request_id }}">
+                            <td>{{ req.request_id }}</td>
+                            <td>{{ req.member_name }}</td>
+                            <td>{{ req.book_title }}</td>
+                            <td>{{ req.edition_number }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if req.status == 'pending' %}bg-warning
+                                    {% elif req.status == 'approved' %}bg-success
+                                    {% elif req.status == 'rejected' %}bg-danger
+                                    {% elif req.status == 'reserved' %}bg-info
+                                    {% elif req.status == 'completed' %}bg-secondary
+                                    {% elif req.status == 'cancelled' %}bg-dark
+                                    {% endif %}">
+                                    {{ req.status|capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ req.request_date }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                   data-bs-target="#updateRequestModal{{ req.request_id }}">
+                                   Update
+                                </a>
+                            </td>
+                        </tr>
+
+                        <!-- Update Request Modal -->
+                        <div class="modal fade" id="updateRequestModal{{ req.request_id }}" tabindex="-1">
+                            <div class="modal-dialog modal-md">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Update Return Request Status</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="request_form{{ req.request_id }}" novalidate>
+
+                                            <div class="alert alert-success d-none" id="req_succ_msg{{ req.request_id }}"></div>
+                                            <div class="alert alert-danger d-none" id="req_err_msg{{ req.request_id }}"></div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-control" id="req_status{{ req.request_id }}">
+                                                    {% for st in ['pending','approved','rejected','reserved','completed','cancelled'] %}
+                                                    <option value="{{ st }}" {% if st==req.status %}selected{% endif %}>
+                                                        {{ st|capitalize }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <div class="invalid-feedback" id="req_status_error{{ req.request_id }}"></div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Note</label>
+                                                <textarea class="form-control" id="req_note{{ req.request_id }}" placeholder="Optional note">{{ req.note or '' }}</textarea>
+                                            </div>
+
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary"
+                                                        onclick="update_request_status('{{ req.request_id }}')">
+                                                    Update
+                                                </button>
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/librarian/requests.js') }}"></script>
+{% endblock %}

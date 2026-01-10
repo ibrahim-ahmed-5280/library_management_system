@@ -1,0 +1,258 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Admin Dashboard | LMS{% endblock %}
+
+{% block content %}
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <h4 class="page-title">Dashboard</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+
+    <!-- Total Books -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-book-multiple widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Total Books</h5>
+                <h3 class="mt-3 mb-3">12,540</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.2%</span>
+                    <span>This month</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Members -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-account-group widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Total Members</h5>
+                <h3 class="mt-3 mb-3">3,814</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 2.8%</span>
+                    <span>This month</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrowed Books (Current) -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-book-open-variant widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Borrowed Books</h5>
+                <h3 class="mt-3 mb-3">482</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.1%</span>
+                    <span>Last week</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Books -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-clock-alert widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Overdue Books</h5>
+                <h3 class="mt-3 mb-3">39</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-danger me-2"><i class="mdi mdi-arrow-up-bold"></i> 8.7%</span>
+                    <span>Needs attention</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Staff -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-account-tie widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Staff Members</h5>
+                <h3 class="mt-3 mb-3">14</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.5%</span>
+                    <span class="text-muted">This month</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-shape-plus widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Categories</h5>
+                <h3 class="mt-3 mb-3">32</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.5%</span>
+                    <span class="text-muted">This month</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservations -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-bookmark-check widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Reservations</h5>
+                <h3 class="mt-3 mb-3">67</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.5%</span>
+                    <span>This month</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Books This Month -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-plus-box widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">New Books Added</h5>
+                <h3 class="mt-3 mb-3">120</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 12%</span>
+                    <span>This month</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- end row -->
+<!-- Row 1: Fines & Books by Branch -->
+<div class="row">
+    <!-- Fines Chart -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title mb-3">Fines & Membership Revenue</h4>
+                <div id="fines-chart" class="apex-charts" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books by Category -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title">Books by Category</h4>
+                <div id="category-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Top Borrowed Books, Borrowings vs Returns, Recent Activity -->
+<div class="row">
+    <!-- Top Borrowed Books Table -->
+    <div class="col-xl-6 col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title mb-3">Top Borrowed Books</h4>
+                <div class="table-responsive">
+                    <table class="table table-centered table-nowrap table-hover mb-0">
+                        <tbody>
+                            <tr>
+                                <td>Introduction to Algorithms</td>
+                                <td>120 Borrowed</td>
+                            </tr>
+                            <tr>
+                                <td>Physics for Beginners</td>
+                                <td>87 Borrowed</td>
+                            </tr>
+                            <tr>
+                                <td>World History</td>
+                                <td>65 Borrowed</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrowings vs Returns Chart -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="header-title mb-3">Borrowings vs Returns</h4>
+                <div id="borrow-return-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ApexCharts JS -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Fines & Membership Revenue Chart
+        var finesOptions = {
+            chart: { type: 'bar', height: 300 },
+            series: [{ name: 'Revenue', data: [1254, 1800] }],
+            xaxis: { categories: ['This Month', 'Last Month'] },
+            colors: ['#727cf5']
+        };
+        new ApexCharts(document.querySelector("#fines-chart"), finesOptions).render();
+
+        var categoryOptions = {
+            chart: { type: 'donut', height: 300 },
+            series: [5000, 3000, 2000, 1500, 1200], // number of books per category
+            labels: ['Science', 'Arts', 'Technology', 'Fiction', 'History'], // categories
+            colors: ['#0acf97', '#fa5c7c', '#ffbc00', '#727cf5', '#6c757d']
+        };
+        new ApexCharts(document.querySelector("#category-chart"), categoryOptions).render();
+
+        // Borrowings vs Returns (line chart)
+        var borrowReturnOptions = {
+            chart: { type: 'line', height: 300 },
+            series: [
+                { name: 'Borrowings', data: [30, 40, 28, 51, 42, 109, 100] },
+                { name: 'Returns', data: [20, 30, 45, 32, 34, 52, 41] }
+            ],
+            xaxis: { categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
+            colors: ['#727cf5', '#0acf97']
+        };
+        new ApexCharts(document.querySelector("#borrow-return-chart"), borrowReturnOptions).render();
+    });
+</script>
+
+
+
+
+{% endblock %}

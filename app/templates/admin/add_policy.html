@@ -1,0 +1,95 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Add policy | LMS{% endblock %}
+
+{% block content %}
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Add</a></li>
+                    <li class="breadcrumb-item active">Policy</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Add policy or rules of library</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-success" role="alert" id="succ_msg" style="display: none;">
+                    A simple success alert—check it out!
+                </div>
+                <div class="alert alert-danger" role="alert" id="err_msg" style="display: none;">
+                    A simple danger alert—check it out!
+                </div>
+                <!-- ====================== Policy FORM ====================== -->
+                <form id="policy_form" novalidate>
+                    <div class="row">
+
+                        <!-- policy Name -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Policy Name</label>
+                                <input id="policy_name" type="text" class="form-control" placeholder="Enter policy name"
+                                    required>
+                                <div id="policy_name_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Policy key -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Policy Key</label>
+                                <input id="policy_key" type="text" class="form-control" placeholder="Enter Policy Key"
+                                    required>
+                                <div id="policy_key_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Policy value -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Policy Value</label>
+                                <input id="policy_value" type="text" class="form-control"
+                                    placeholder="Enter Policy Value" required>
+                                <div id="policy_value_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+                        <!-- Description -->
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <!-- <input id="description" type="text" class="form-control" placeholder="Enter description"
+                                    required> -->
+                                <textarea class="form-control" name="description" id="description" placeholder="Enter description" required rows="4"></textarea>
+                                <div id="description_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-2">
+                            <button id="policy_btn" onclick="register_policy()" class="btn btn-primary" type="button">
+                                <span id="policy_spinner" class="spinner-border spinner-border-sm d-none"></span>
+                                <span id="policy_btn_text">Register Policy</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<script src="{{url_for('static', filename = 'js/admin/registration.js')}}"></script>
+{% endblock %}

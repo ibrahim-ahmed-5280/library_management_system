@@ -1,0 +1,331 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Manage Members | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Members</a></li>
+                    <li class="breadcrumb-item active">View</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Members</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Membership Type</th>
+                            <th>Membership Start</th>
+                            <th>Membership End</th>
+                            <th>Status</th>
+                            <th>Date created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+                        {%if member_data%}
+                        {%for member in member_data%}
+                        <tr>
+                            <td>{{ member.user_id }}</td>
+                            <td>{{ member.name }}</td>
+                            <td>{{ member.email }}</td>
+                            <td>{{ member.role }}</td>
+                            <td>{{ member.membership_type }}</td>
+                            <td>{{ member.membership_start }}</td>
+                            <td>{{ member.membership_end }}</td>
+                            <td>{{ member.status }}</td>
+                            <td>{{ member.created_at }}</td>
+
+                            <td class="align-middle">
+                                <div class="dropdown dropstart">
+                                    <div class="dropdown dropstart">
+                                        <!-- Dropdown Toggle Button -->
+                                        <a href="#" class="action-icon" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="mdi mdi-dots-vertical"></i>
+                                        </a>
+                                        <!-- Dropdown Menu (appears only when opened) -->
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                    data-bs-target="#updateUserModal{{ member.user_id }}"
+                                                    data-id="{{ member.user_id }}">
+                                                    <i class="mdi mdi-square-edit-outline me-1"></i> Edit Details
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                    data-bs-target="#updatePasswordModal{{ member.user_id }}"
+                                                    data-id="{{ member.user_id }}">
+                                                    <i class="mdi mdi-lock-outline me-1"></i> Change Password
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+
+                                </div>
+                            </td>
+                            <!-- Modal for member details change -->
+                            <div class="modal fade" id="updateUserModal{{ member.user_id }}" tabindex="-1"
+                                aria-labelledby="updateUserModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updateUserModalLabel">Update member
+                                                details
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="user_form{{ member.user_id }}" novalidate>
+                                                <div class="row">
+                                                    <div class="alert alert-success my-2" role="alert"
+                                                        id="succ_msg{{ member.user_id }}" style="display: none;">
+                                                        A simple success alert—check it out!
+                                                    </div>
+                                                    <div class="alert alert-danger my-2" role="alert"
+                                                        id="err_msg{{ member.user_id }}" style="display: none;">
+                                                        A simple danger alert—check it out!
+                                                    </div>
+                                                    <!-- Name -->
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Full Name</label>
+                                                            <input id="user_name{{ member.user_id }}" type="text"
+                                                                class="form-control" value="{{member.name}}"
+                                                                placeholder="Enter member full name" required>
+                                                            <div id="user_name_error{{ member.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Email -->
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Email</label>
+                                                            <input id="user_email{{ member.user_id }}" type="email"
+                                                                value="{{member.email}}" class="form-control"
+                                                                placeholder="Enter member email" required>
+                                                            <div id="user_email_error{{ member.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Membership Type -->
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Membership Type</label>
+                                                            <select id="member_type{{ member.user_id }}"
+                                                                class="form-control" required>
+                                                                {%if member.membership_type == 'student'%}
+                                                                <option value="{{member.membership_type}}" selected>
+                                                                    {{member.membership_type}}</option>
+                                                                <option value="external">External</option>
+                                                                {%elif member.membership_type == 'external'%}
+                                                                <option value="{{member.membership_type}}" selected>
+                                                                    {{member.membership_type}}</option>
+                                                                <option value="external">External</option>
+                                                                {%endif%}
+                                                            </select>
+                                                            <div id="member_type_error{{ member.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Start -->
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Membership Start Date</label>
+                                                            <input id="member_start{{ member.user_id }}" type="date"
+                                                                class="form-control" value="{{member.membership_start}}"
+                                                                required>
+                                                            <div id="member_start_error{{ member.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- End -->
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Membership End Date</label>
+                                                            <input id="member_end{{ member.user_id }}" type="date"
+                                                                class="form-control" value="{{member.membership_end}}"
+                                                                required>
+                                                            <div id="member_end_error{{ member.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- status -->
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Status</label>
+                                                            <select class="form-select"
+                                                                name="user_status{{ member.user_id }}"
+                                                                id="user_status{{ member.user_id }}">
+                                                                {%if member.status == 'active'%}
+                                                                <option value="{{member.status}}" selected>
+                                                                    {{member.status}}</option>
+                                                                <option value="inactive">Inactive</option>
+                                                                {%elif member.status == 'inactive'%}
+                                                                <option value="{{member.status}}" selected>
+                                                                    {{member.status}}</option>
+                                                                <option value="active">Active</option>
+                                                                {%endif%}
+                                                            </select>
+                                                            <div id="user_status_error{{ member.user_id }}"
+                                                                class="invalid-feedback"></div>
+                                                        </div>
+                                                    </div>
+
+
+                                                    <div class="d-flex justify-content-end mt-2">
+                                                        <button id="user_btn{{ member.user_id }}"
+                                                            onclick="update_member('{{ member.user_id }}')"
+                                                            class="btn btn-primary" type="button">
+                                                            <span id="user_spinner{{ member.user_id }}"
+                                                                class="spinner-border spinner-border-sm d-none"></span>
+                                                            <span id="user_btn_text{{ member.user_id }}">
+                                                                Update User
+                                                            </span>
+                                                        </button>
+
+                                                    </div>
+
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- update password -->
+                            <div class="modal fade" id="updatePasswordModal{{ member.user_id }}" tabindex="-1"
+                                aria-labelledby="updatePasswordModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="updatePasswordModalLabel">Update member
+                                                details
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="password_form{{ member.user_id }}" class="needs-validation"
+                                                novalidate>
+                                                <div class="alert alert-success d-none" role="alert"
+                                                    id="succ_msg_pass{{ member.user_id }}">
+                                                    A simple success alert—check it out!
+                                                </div>
+                                                <div class="alert alert-danger d-none" role="alert"
+                                                    id="err_msg_pass{{ member.user_id }}">
+                                                    A simple danger alert—check it out!
+                                                </div>
+                                                <input type="hidden" id="id_pass{{ member.user_id }}"
+                                                    value="{{ member.user_id }}">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label for="user_password{{ member.user_id }}"
+                                                                class="form-label">New
+                                                                Password</label>
+                                                            <div class="input-group">
+                                                                <input id="user_password{{ member.user_id }}"
+                                                                    type="password" class="form-control"
+                                                                    placeholder="Update password" required>
+
+                                                                <span class="input-group-text" style="cursor:pointer"
+                                                                    onclick="togglePassword('user_password{{ member.user_id }}','_pass{{ member.user_id }}')">
+                                                                    <i id="eye_icon_pass{{ member.user_id }}"
+                                                                        class="uil uil-eye"></i>
+                                                                </span>
+
+                                                                <div id="user_password_error{{ member.user_id }}"
+                                                                    class="invalid-feedback">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <div class="mb-3">
+                                                            <label for="user_confirm{{ member.user_id }}"
+                                                                class="form-label">Confirm New
+                                                                Password</label>
+                                                            <div class="input-group">
+                                                                <input id="user_confirm{{ member.user_id }}"
+                                                                    type="password" class="form-control"
+                                                                    placeholder="Update confirm password" required>
+
+                                                                <span class="input-group-text" style="cursor:pointer"
+                                                                    onclick="togglePassword('user_confirm{{ member.user_id }}','_confirm{{ member.user_id }}')">
+                                                                    <i id="eye_icon_confirm{{ member.user_id }}"
+                                                                        class="uil uil-eye"></i>
+                                                                </span>
+
+                                                                <div id="user_confirm_error{{ member.user_id }}"
+                                                                    class="invalid-feedback">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-4">
+                                                    <div class="d-flex justify-content-end mt-2">
+                                                        <button id="user_btn_pass{{ member.user_id }}"
+                                                            onclick="change_password_user('{{ member.user_id }}')"
+                                                            class="btn btn-primary" type="button">
+                                                            <span id="user_spinner_pass{{ member.user_id }}"
+                                                                class="spinner-border spinner-border-sm d-none"></span>
+                                                            <span id="user_btn_pass_text{{ member.user_id }}">
+                                                                Update Password
+                                                            </span>
+                                                        </button>
+
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </tr>
+
+                        {%endfor%}
+                        {%endif%}
+                    </tbody>
+                </table>
+            </div> <!-- end card body-->
+        </div> <!-- end card -->
+    </div><!-- end col-->
+</div>
+
+<!-- end row-->
+<script src="{{url_for('static', filename = 'js/admin/update.js')}}"></script>
+<script src="{{url_for('static', filename = 'js/admin/toggle_password.js')}}"></script>
+{% endblock %}

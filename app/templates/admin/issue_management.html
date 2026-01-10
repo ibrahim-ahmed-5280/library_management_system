@@ -1,0 +1,165 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Manage Issues | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons { display: none !important; }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="#">LMS</a></li>
+                    <li class="breadcrumb-item active">Manage Issues</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Book Issues</h4>
+        </div>
+    </div>
+</div>
+
+<!-- =============== INSERT ISSUE FORM =============== -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form id="newIssueForm" novalidate>
+                    <div class="alert alert-success d-none" id="new_issue_succ_msg"></div>
+                    <div class="alert alert-danger d-none" id="new_issue_err_msg"></div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Member</label>
+                            <select class="form-control" id="new_issue_member">
+                                <option value="">Select Member</option>
+                                {% for member in members %}
+                                <option value="{{ member.user_id }}">{{ member.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback" id="new_issue_member_error"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Edition</label>
+                            <select class="form-control" id="new_issue_edition">
+                                <option value="">Select Edition</option>
+                                {% for book, edition in books_with_editions %}
+                                <option value="{{ edition.edition_id }}">{{ edition.edition_number }} - {{ book.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback" id="new_issue_edition_error"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="new_issue_due_date">
+                            <div class="invalid-feedback" id="new_issue_due_date_error"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-end">
+                        <button type="button" class="btn btn-primary" onclick="insert_issue()">
+                            <span id="new_issue_spinner" class="spinner-border spinner-border-sm d-none"></span>
+                            <span id="new_issue_btn_text">Add Issue</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =============== EXISTING ISSUES TABLE =============== -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Book / Edition</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td>{{ issue.request_id }}</td>
+                            <td>{{ issue.member_name }}</td>
+                            <td>{{ issue.book_title }} / {{ issue.edition_number }}</td>
+                            <td>{{ issue.due_date }}</td>
+                            <td>{{ issue.status }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="openEditModal({{ issue.request_id }})">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =============== SINGLE EDIT ISSUE MODAL =============== -->
+<div class="modal fade" id="editIssueModal" tabindex="-1">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Issue</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editIssueForm" novalidate>
+                    <div class="alert alert-success d-none" id="edit_issue_succ_msg"></div>
+                    <div class="alert alert-danger d-none" id="edit_issue_err_msg"></div>
+
+                    <input type="hidden" id="edit_issue_id">
+
+                    <div class="mb-3">
+                        <label class="form-label">Member</label>
+                        <select class="form-control" id="edit_issue_member"></select>
+                        <div class="invalid-feedback" id="edit_issue_member_error"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Edition</label>
+                        <select class="form-control" id="edit_issue_edition"></select>
+                        <div class="invalid-feedback" id="edit_issue_edition_error"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" class="form-control" id="edit_issue_due_date">
+                        <div class="invalid-feedback" id="edit_issue_due_date_error"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="edit_issue_status">
+                            {% for st in ['pending','approved','rejected','completed','cancelled'] %}
+                            <option value="{{ st }}">{{ st|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback" id="edit_issue_status_error"></div>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="button" class="btn btn-primary" onclick="update_issue()">
+                            Update Issue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/librarian/manage_issues.js') }}"></script>
+{% endblock %}

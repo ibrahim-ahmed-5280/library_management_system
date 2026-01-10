@@ -1,0 +1,144 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Add Members | LMS{% endblock %}
+
+{% block content %}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Add</a></li>
+                    <li class="breadcrumb-item active">Member</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Registration Member</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-success" role="alert" id="succ_msg" style="display: none;">
+                    A simple success alert—check it out!
+                </div>
+                <div class="alert alert-danger" role="alert" id="err_msg" style="display: none;">
+                    A simple danger alert—check it out!
+                </div>
+                <!-- ====================== MEMBER FORM ====================== -->
+                <form id="member_form" novalidate>
+                    <div class="row">
+
+                        <!-- Name -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input id="member_name" type="text" class="form-control"
+                                    placeholder="Enter member full name" required>
+                                <div id="member_name_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input id="member_email" type="email" class="form-control"
+                                    placeholder="Enter member email" required>
+                                <div id="member_email_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+
+                                <div class="input-group">
+                                    <input id="member_password" type="password" class="form-control"
+                                        placeholder="Create password" required>
+
+                                    <span class="input-group-text" style="cursor:pointer"
+                                        onclick="togglePassword('member_password','_pass')">
+                                        <i id="eye_icon_pass" class="uil uil-eye"></i>
+                                    </span>
+
+                                    <div id="member_password_error" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Confirm Password -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+
+                                <div class="input-group">
+                                    <input id="member_confirm" type="password" class="form-control"
+                                        placeholder="confirm password" required>
+
+                                    <span class="input-group-text" style="cursor:pointer"
+                                        onclick="togglePassword('member_confirm','_confirm')">
+                                        <i id="eye_icon_confirm" class="uil uil-eye"></i>
+                                    </span>
+
+                                    <div id="member_confirm_error" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Membership Type -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Membership Type</label>
+                                <select id="member_type" class="form-control" required>
+                                    <option value="">Choose membership…</option>
+                                    <option value="student">Student</option>
+                                    <option value="external">External</option>
+                                </select>
+                                <div id="member_type_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Start -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Membership Start Date</label>
+                                <input id="member_start" type="date" class="form-control" required>
+                                <div id="member_start_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- End -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Membership End Date</label>
+                                <input id="member_end" type="date" class="form-control" required>
+                                <div id="member_end_error" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-2">
+                            <button id="member_btn" onclick="register_member()" class="btn btn-primary" type="button">
+                                <span id="member_spinner" class="spinner-border spinner-border-sm d-none"></span>
+                                <span id="member_btn_text">Register Member</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="{{url_for('static', filename = 'js/admin/registration.js')}}"></script>
+<script src="{{url_for('static', filename = 'js/admin/toggle_password.js')}}"></script>
+{% endblock %}
