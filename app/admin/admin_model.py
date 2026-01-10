@@ -378,7 +378,7 @@ def check_admin_model_connection():
     try:
         mysql_connect = AdminDatabase(
             host=admin_db_configuration.DB_HOSTNAME,
-            port=3307,
+            port=3306,
             user=admin_db_configuration.DB_USERNAME,
             password=admin_db_configuration.DB_PASSWORD,
             database=admin_db_configuration.DB_NAME,

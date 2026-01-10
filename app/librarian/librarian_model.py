@@ -452,7 +452,7 @@ def check_librarian_model_connection():
     try:
         db = LibrarianDatabase(
             host=librarian_db_configuration.DB_HOSTNAME,
-            port=3307,
+            port=3306,
             user=librarian_db_configuration.DB_USERNAME,
             password=librarian_db_configuration.DB_PASSWORD,
             database=librarian_db_configuration.DB_NAME
