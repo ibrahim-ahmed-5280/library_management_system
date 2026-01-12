@@ -1,0 +1,126 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Manage Returns | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="#">LMS</a></li>
+                    <li class="breadcrumb-item active">Manage Returns</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Manage Book Returns</h4>
+        </div>
+    </div>
+</div>
+
+
+<!-- =============== EXISTING ISSUES TABLE =============== -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Book / Edition</th>
+                            <th>Issue Date</th>
+                            <th>Overude</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td>{{ issue.issue_id }}</td>
+                            <td>{{ issue.member_name }}</td>
+                            <td>{{ issue.book_title }} / {{ issue.edition_number }}</td>
+                            <td>{{issue.issue_date}}</td>
+                            <td>{%if today > issue.due_date%} <span class="badge bg-warning">Overdue</span> {%elif today <= issue.due_date%}<span class="badge bg-success">No</span> {%endif%}</td>
+                            <td>{{ issue.due_date }}</td>
+                            <td>{{ issue.status }}</td>
+                            <td class="align-middle">
+                                <div class="dropdown dropstart">
+                                    <a href="#" class="action-icon" data-bs-toggle="dropdown">
+                                        <i class="mdi mdi-dots-vertical"></i>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="#" class="dropdown-item" data-bs-toggle="modal"
+                                                data-bs-target="#returnIssueModal{{ issue.issue_id }}">
+                                                <i class="mdi mdi-square-edit-outline me-1"></i>
+                                                Return Issue
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- =============== SINGLE EDIT ISSUE MODAL =============== -->
+                        <div class="modal fade" id="returnIssueModal{{issue.issue_id}}" tabindex="-1">
+                            <div class="modal-dialog modal-md">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Return Issue</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="returnIssueForm{{issue.issue_id}}" novalidate>
+                                            <div class="alert alert-success d-none" id="return_issue_succ_msg{{issue.issue_id}}"></div>
+                                            <div class="alert alert-danger d-none" id="return_issue_err_msg{{issue.issue_id}}"></div>
+
+                                            <input type="hidden" id="return_issue_copy{{issue.issue_id}}">
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-control" id="return_issue_status{{issue.issue_id}}">
+                                                
+                                                        <option value="returned" {%if issue.status == 'returned'%} selected {%endif%} >returned</option>
+                                                        <option value="borrowed" {%if issue.status == 'borrowed'%} selected {%endif%}>borrowed</option>
+                                                </select>
+
+                                                <div class="invalid-feedback"
+                                                    id="return_issue_status_error{{issue.issue_id}}"></div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-danger"
+                                                    id="return_btn{{ issue.issue_id }}"
+                                                    onclick="return_issue(`{{ issue.issue_id }}`, `{{ issue.copy_id }}`)">
+                                                    <span id="return_spinner_{{ issue.issue_id }}"
+                                                        class="spinner-border spinner-border-sm d-none"></span>
+                                                    <span id="text_btn{{ issue.issue_id }}">Return Issue</span>
+
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="{{ url_for('static', filename='js/librarian/return_issue.js') }}"></script>
+{% endblock %}

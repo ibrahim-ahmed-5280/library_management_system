@@ -710,7 +710,6 @@ def manage_issues():
 @app.route('/issue_books/insert', methods=['POST'])
 def insert_issue():
     data = request.get_json()
-    print(f"Data received {data}")
     member_id = data.get('member_id')
     edition_id = data.get('edition_id')
     due_date_str = data.get('due_date')
@@ -746,15 +745,16 @@ def insert_issue():
     copy = librarian_modal.get_available_copy(edition_id)
 
     if copy:
-        if librarian_modal.is_member_borrowed(edition_id, member_id):
-            return jsonify(success=False, message="Member borrowed already this book.")
-        request_id = librarian_modal.create_borrowed_request(member_id, edition_id)
-        librarian_modal.create_issue(copy['copy_id'], member_id, due_date,request_id)
+        if librarian_modal.is_member_borrowed(copy.get('copy_id'), member_id):
+            return jsonify(success=False, message="Member al ready borrowed this book.")
+        if librarian_modal.is_member_borrow_limit_reached(member_id):
+            return jsonify(success=False, message="Member al ready borrowed his limit of borrowed.")
+
+        librarian_modal.create_issue(copy['copy_id'], member_id, due_date,session['librarian_id'])
         return jsonify({"success": True, "message": "Book issued successfully."})
         librarian_modal.update_status(copy['copy_id'], 'borrowed')
     else:
-        librarian_modal.create_reserved_request(member_id, edition_id)
-        return jsonify({"success": False, "message": "No available copy. Request reserved."})
+        return jsonify({"success": False, "message": "No available copy."})
 
 @app.route('/issue_books/update', methods=['POST'])
 def update_issue():
@@ -798,12 +798,10 @@ def update_issue():
         copy = librarian_modal.get_available_copy(edition_id)
 
         if copy:
-            if librarian_modal.is_member_borrowed(edition_id, member_id):
-                return jsonify(success=False, message="The new Member borrowed already this book.")
             # Update issue with new copy and member
             librarian_modal.update_issue(issue_id, member_id, due_date, copy['copy_id'])
             # Update the request table if needed
-            librarian_modal.update_request(current_issue.get('request_id'), member_id, edition_id)
+            #librarian_modal.update_request(current_issue.get('request_id'), member_id, edition_id)
             # Update old copy status to available
             librarian_modal.update_status(current_copy_id, 'available')
             # Update new copy status to borrowed
@@ -811,19 +809,70 @@ def update_issue():
             return jsonify(success=True, message="Issue updated with new edition successfully.")
         else:
             # No copy available: create reserved request
-            librarian_modal.create_reserved_request(member_id, edition_id)
+            #librarian_modal.create_reserved_request(member_id, edition_id)
             librarian_modal.update_status_issue(issue_id, "returned")
-            return jsonify(success=False, message="No available copy for the selected edition. Request reserved.")
+            return jsonify(success=False, message="No available copy for the selected edition.")
     else:
-        if librarian_modal.is_reserved(current_issue.get('request_id'),edition_id, member_id):
-            return jsonify(success=False, message="Member borrowed already this book.")
+        #if librarian_modal.is_reserved(current_issue.get('request_id'),edition_id, member_id):
+            #return jsonify(success=False, message="Member borrowed already this book.")
 
         # Edition not changed, just update member and due date
-        librarian_modal.update_issue(issue_id, member_id, edition_id, due_date, current_copy_id)
+        librarian_modal.update_issue(issue_id, member_id, due_date, current_copy_id)
         return jsonify(success=True, message="Issue updated successfully.")
 
+@app.route('/return_issue_page')
+def return_issue_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
+    connection_status, librarian_modal = check_librarian_model_connection()
+    if not connection_status:
+        return jsonify(success=False, message="Database connection failed"), 500
 
+    all_borrows = librarian_modal.get_all_issues()
+    if all_borrows:
+        return render_template('admin/return_books.html',
+                               issues=all_borrows,
+                               today=date.today()
+                               )
+    return render_template('admin/return_books.html',
+                           issues=[])
 
+@app.route('/return_issue/update', methods=['POST'])
+def update_return_issue():
+    data = request.get_json()
+    issue_id = data.get('issue_id')
+    status = data.get('status')
+
+    if status not in ['returned', 'borrowed']:
+        return jsonify({"success": False, "message": "Invalid status"}), 400
+
+    connection_status, librarian_modal = check_librarian_model_connection()
+    if not connection_status:
+        return jsonify(success=False, message="Database connection failed"), 500
+    current_issue = librarian_modal.get_issue(issue_id)
+    print(current_issue)
+    flag = librarian_modal.update_status_issue(issue_id,status)
+    if flag:
+        librarian_modal.update_status(current_issue.get('copy_id'), "available")
+        return jsonify(success=True, message="Issue updated with new status successfully.")
+    return jsonify({"success": False, "message": "Issue not updated successfully."})
+
+@app.route('/fines_overdue_page')
+def fines_overdue_page():
+    email = get_session_data()
+    if not email:
+        return login_page_librarian()
+    connection_status, librarian_modal = check_librarian_model_connection()
+    if not connection_status:
+        return jsonify(success=False, message="Database connection failed"), 500
+
+    all_issues = librarian_modal.get_all_issues()
+    if all_borrows:
+        return render_template('admin/return_books.html',
+                               issues=all_borrows,)
+    return render_template('admin/return_books.html',
+                           issues=[])
 
 #Logout admin user
 @app.route('/librarian/logout')

@@ -509,6 +509,8 @@ def update_user():
     flag,message_get = admin_model.update_user(name,email,status,user_id)
     print(message_get)
     if flag:
+        if email != get_session_data():
+            session['email'] = session['email']
         return jsonify(success=True, message= message_get)
 
     return jsonify(success=False, message="User not updated.")
