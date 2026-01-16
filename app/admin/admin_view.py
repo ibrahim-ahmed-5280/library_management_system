@@ -5,14 +5,14 @@ from flask_bcrypt import Bcrypt, check_password_hash, generate_password_hash
 import os,re
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
-
+bcrypt = Bcrypt(app)
 # ====================================================#
 #================= SESSION STORAGE ===================#
 
 # Helper function for session management
-def get_session_data():
+def get_admin_session():
     """Retrieve session data."""
-    return session.get('email')
+    return session.get('admin_email')
 
 #=====================================================#
 #====== CONTEXT PROCESSOR TO GIVE DATA ALL PAGES =====#
@@ -23,7 +23,7 @@ def inject_admin_data():
     context = {
         'admin': None
     }
-    email = session.get('email')
+    email = session.get('admin_email')
     if email:
         connection_status, admin_model = check_admin_model_connection()
         if connection_status:
@@ -50,7 +50,7 @@ def login_page():
 # Dashboard admin page
 @app.route('/admin/dashboard_page')
 def dashboard_page_admin():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
 
@@ -75,11 +75,43 @@ def dashboard_page_admin():
         admin_stats=stats
     )
 
+# Profile admin page
+@app.route('/admin/profile_admin')
+def profile_admin():
+    email = get_admin_session()
+    if not email:
+        return login_page()
+    return render_template('admin/admin_profile.html')
+
+
+# Admin reports page
+@app.route("/admin/reports")
+def admin_reports():
+    email = get_admin_session()
+    if not email:
+        return login_page()
+
+    connection_status, admin_model = check_admin_model_connection()
+    if not connection_status:
+        return jsonify({"Database connection failed."})
+
+    reports = admin_model.get_system_reports()
+
+    return render_template(
+        "admin/admin_reports.html",
+        reports=reports
+    )
+
+# Helper for report page
+@app.route("/admin/reports/export/<format>")
+def export_report(format):
+    return f"Exporting {format}"
 
 #Add admins page
 @app.route('/admin/add_admin_page')
 def add_admin_page():
-    email = get_session_data()
+    email = get_admin_session()
+    print(email)
     if not email:
         return login_page()
     return render_template('admin/add_admin.html')
@@ -87,7 +119,7 @@ def add_admin_page():
 #Add librarians page
 @app.route('/admin/add_librarian_page')
 def add_librarian_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
     return render_template('admin/add_librarian.html')
@@ -95,7 +127,7 @@ def add_librarian_page():
 #Add members page
 @app.route('/admin/add_member_page')
 def add_member_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
     return render_template('admin/add_member.html')
@@ -103,7 +135,7 @@ def add_member_page():
 #Manage Admins page
 @app.route('/admin/manage_admins')
 def manage_admins_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
     connection_status, admin_model = check_admin_model_connection()
@@ -119,7 +151,7 @@ def manage_admins_page():
 #Manage librarians page
 @app.route('/admin/manage_librarians')
 def manage_librarians_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
     connection_status, admin_model = check_admin_model_connection()
@@ -135,7 +167,7 @@ def manage_librarians_page():
 #Manage members page
 @app.route('/admin/manage_members')
 def manage_members_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
     connection_status, admin_model = check_admin_model_connection()
@@ -151,16 +183,17 @@ def manage_members_page():
 #manage settings or policies of the library
 @app.route('/admin/add_policy_page')
 def add_policy_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
     return render_template('admin/add_policy.html',
                            policy_data=[])
 
+
 #manage settings or policies of the library
 @app.route('/admin/manage_policy_page')
 def manage_policy_page():
-    email = get_session_data()
+    email = get_admin_session()
     if not email:
         return login_page()
 
@@ -195,8 +228,8 @@ def login_admin():
         if check_password_hash(result[0].get('password'), password):
             print(result)
             session['user_id'] = result[0].get('user_id')
-            session['email'] = result[0].get('email')
-            session['password'] = result[0].get('password')
+            session['admin_email'] = result[0].get('email')
+            session['admin_password'] = result[0].get('password')
             return jsonify({
                 "success": True,
                 "message": "Admin added successfully."
@@ -509,8 +542,6 @@ def update_user():
     flag,message_get = admin_model.update_user(name,email,status,user_id)
     print(message_get)
     if flag:
-        if email != get_session_data():
-            session['email'] = session['email']
         return jsonify(success=True, message= message_get)
 
     return jsonify(success=False, message="User not updated.")
@@ -689,6 +720,7 @@ def update_policy():
 
     # ---------- INSERT POLICY ----------
     flag, msg = admin_model.update_policy(
+        policy_id,
         policy_name,
         policy_key,
         policy_value,
@@ -703,6 +735,98 @@ def update_policy():
         success=False,
         message="Policy not registered."
     )
+
+
+# change admin password
+@app.route('/change_password_admin', methods=['POST'])
+def change_password_admin():
+
+    data = request.get_json()
+    print(data)
+    if not all(key in data for key in ['old_password', 'new_password', 'confirm_password']):
+        return jsonify({'success': False, 'message': 'All fields are required'}), 400
+
+    if len(data['new_password']) < 6 or len(data['new_password']) > 20:
+        return jsonify({'success': False, 'message': 'Password must be at least 6 to 20 characters long'}), 400
+
+    if data['new_password'] != data['confirm_password']:
+        return jsonify({'success': False, 'message': 'New password and confirmation do not match'}), 400
+    if not bcrypt.check_password_hash(session['admin_password'], data['old_password']):
+        return jsonify({'success': False, 'message': 'Current password is incorrect'}), 400
+
+    connection_status, admin_model = check_admin_model_connection()
+    if not connection_status:
+        return jsonify({'success': False, 'message': 'Database connection failed', 'field': 'general'}), 500
+
+    hashed_password = bcrypt.generate_password_hash(data.get('new_password')).decode('utf-8')
+    success = admin_model.change_admin_password(hashed_password, data.get('admin_id'))
+    if success:
+        session['password'] = hashed_password
+        return jsonify({'success': True, 'message': 'Password changed successfully'}), 200
+    return jsonify({'success': False, 'message': 'Failed to change password', 'field': 'general'}), 400
+
+
+#funtions use for validate
+# function for validating full name
+def validate_full_name(name):
+    name = name.strip()
+    if not all(word.isalpha() for word in name.split()):
+        return False, 'Name must contain only alphabets (no numbers or special characters)'
+    if len(name) < 9:
+        return False, 'Name must be at least 9 characters long'
+    if len(name) > 60:
+        return False, 'Name cannot exceed 60 characters'
+    words = name.split()
+    word_count = len(words)
+    if word_count < 3 or word_count > 4:
+        return False, 'Name must contain 3 or 4 words separated by spaces'
+    for word in words:
+        if len(word) < 3 or len(word) > 15:
+            return False, f'Each name must be between 3 and 15 characters: "{word}" is invalid'
+    return True, None
+
+# function for validating email
+def validate_email(email):
+    return bool(re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email))
+
+
+
+# change admin details
+@app.route('/change_admin_details', methods=['POST'])
+def change_admin_details():
+    if not request.is_json:
+        return jsonify({'status': False, 'message': 'Request must be JSON'}), 400
+
+    try:
+        data = request.get_json()
+        print(data)
+        errors = {}
+
+        if not data.get('name'):
+            errors['name'] = 'Name is required'
+        else:
+            is_valid_name, name_error = validate_full_name(data['name'])
+            if not is_valid_name:
+                errors['name'] = name_error
+
+        if not data.get('email'):
+            errors['email'] = 'Email is required'
+        elif not validate_email(data['email']):
+            errors['email'] = 'Invalid email format'
+
+        if errors:
+            return jsonify({'status': False, 'message': 'Validation failed', 'errors': errors}), 400
+
+        connection_status, admin_model = check_admin_model_connection()
+        if connection_status:
+            success = admin_model.update_admin_details(data)
+            if success:
+                return jsonify({'status': True, 'message': 'admin details updated successfully'})
+            return jsonify({'status': False, 'message': 'Failed to update user details'})
+        return jsonify({"Database connection problem."})
+    except Exception as e:
+        print(f'Error updating user details: {str(e)}')
+        return jsonify({'status': False, 'message': 'Server error occurred while updating user details'}), 500
 
 #=====================================================#
 #======== LOGOUT OPERATION ===========================#

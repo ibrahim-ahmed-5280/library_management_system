@@ -60,7 +60,7 @@
         <div class="leftside-menu">
 
             <!-- LOGO -->
-            <a href="{{url_for('dashboard_page_admin')}}" class="logo text-center logo-light">
+            <a href="{{url_for('dashboard_page_librarian')}}" class="logo text-center logo-light">
                 <span class="logo-lg">
                     <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/images/logo.png" alt=""
                         height="16">
@@ -72,7 +72,7 @@
             </a>
 
             <!-- LOGO -->
-            <a href="{{url_for('dashboard_page_admin')}}" class="logo text-center logo-dark">
+            <a href="{{url_for('dashboard_page_librarian')}}" class="logo text-center logo-dark">
                 <span class="logo-lg">
                     <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/images/logo-dark.png"
                         alt="" height="16">
@@ -87,93 +87,123 @@
 
                 <!--- Sidemenu -->
                 <ul class="side-nav">
-
-                    <li class="side-nav-title side-nav-item">Admin</li>
-
+                    <li class="side-nav-title side-nav-item">Librarian</li>
                     <li class="side-nav-item">
-                        <a href="{{url_for('dashboard_page_admin')}}" class="side-nav-link">
+                        <a href="{{url_for('dashboard_page_librarian')}}" class="side-nav-link">
                             <i class="uil-home-alt"></i>
                             <span> Dashboard </span>
                         </a>
                     </li>
-                    <!-- manage users pages -->
                     <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarManageUsers" aria-expanded="false"
-                            aria-controls="sidebarManageUsers" class="side-nav-link">
-                            <i class="uil-user"></i>
-                            <span> Manage Users </span>
+                        <a data-bs-toggle="collapse" href="#sidebarBooks" aria-expanded="false"
+                            aria-controls="sidebarBooks" class="side-nav-link">
+                            <i class="uil-books"></i>
+                            <span> Manage Books </span>
                             <span class="menu-arrow"></span>
                         </a>
-                        <div class="collapse" id="sidebarManageUsers">
+                        <div class="collapse" id="sidebarBooks">
                             <ul class="side-nav-second-level">
-                                <!-- <li>
-                                    <a href="{{url_for('manage_admins_page')}}">Manage Admins</a>
-                                </li> -->
                                 <li>
-                                    <a href="{{url_for('manage_librarians_page')}}">Manage Librarians</a>
+                                    <a href="{{url_for('add_book_page')}}">Add book</a>
                                 </li>
                                 <li>
-                                    <a href="{{url_for('manage_members_page')}}">Manage Members</a>
+                                    <a href="{{url_for('manage_books')}}">Manage books</a>
                                 </li>
 
                             </ul>
                         </div>
                     </li>
-                    <!-- add users pages -->
                     <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarAddUsers" aria-expanded="false"
-                            aria-controls="sidebarAddUsers" class="side-nav-link">
-                            <i class="uil-user-plus"></i>
-                            <span> Add Users </span>
+                        <a data-bs-toggle="collapse" href="#sidebarEditions" aria-expanded="false"
+                            aria-controls="sidebarEditions" class="side-nav-link">
+                            <i class="uil-copy-alt"></i>
+                            <span> Manage Editions </span>
                             <span class="menu-arrow"></span>
                         </a>
-                        <div class="collapse" id="sidebarAddUsers">
+                        <div class="collapse" id="sidebarEditions">
                             <ul class="side-nav-second-level">
                                 <li>
-                                    <a href="{{url_for('add_admin_page')}}">Add Admin</a>
+                                    <a href="{{url_for('add_edition_page')}}">Add edition</a>
                                 </li>
                                 <li>
-                                    <a href="{{url_for('add_librarian_page')}}">Add Librarian</a>
-                                </li>
-                                <li>
-                                    <a href="{{url_for('add_member_page')}}">Add Member</a>
+                                    <a href="{{url_for('manage_editions')}}">Manage editions</a>
                                 </li>
 
                             </ul>
                         </div>
                     </li>
-
                     <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarSetting" aria-expanded="false"
-                            aria-controls="sidebarSetting" class="side-nav-link">
-                            <i class="uil-cog"></i>
-                            <span> Manage policy </span>
+                        <a data-bs-toggle="collapse" href="#sidebarCopies" aria-expanded="false"
+                            aria-controls="sidebarCopies" class="side-nav-link">
+                            <i class="uil-box"></i>
+                            <span> Manage Copies </span>
                             <span class="menu-arrow"></span>
                         </a>
-                        <div class="collapse" id="sidebarSetting">
+                        <div class="collapse" id="sidebarCopies">
                             <ul class="side-nav-second-level">
                                 <li>
-                                    <a href="{{url_for('add_policy_page')}}">Add Policy</a>
+                                    <a href="{{url_for('add_copy_page')}}">Add edition copies</a>
                                 </li>
                                 <li>
-                                    <a href="{{url_for('manage_policy_page')}}">Manage Policy</a>
+                                    <a href="{{url_for('manage_copies')}}">Manage copies</a>
                                 </li>
+
                             </ul>
                         </div>
                     </li>
                     <li class="side-nav-item">
-                        <a href="{{url_for('admin_reports')}}" class="side-nav-link">
-                            <i class="uil uil-chart-line"></i>
+                        <a data-bs-toggle="collapse" href="#sidebarRequests" aria-expanded="false"
+                            aria-controls="sidebarRequests" class="side-nav-link">
+                            <i class="uil-clipboard-alt"></i>
+                            <span> Requests </span>
+                            <span class="menu-arrow"></span>
+                        </a>
+                        <div class="collapse" id="sidebarRequests">
+                            <ul class="side-nav-second-level">
+                                <li>
+                                    <a href="{{url_for('borrow_requests_page')}}"> Borrow Requests</a>
+                                </li>
+                                <li>
+                                    <a href="{{url_for('reverse_requests_page')}}"> Reserve Requests</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="{{url_for('manage_issues')}}" class="side-nav-link">
+                            <i class="uil-book-open"></i>
+                            <span> Issue Book</span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="{{url_for('return_issue_page')}}" class="side-nav-link">
+                            <i class="uil-book"></i>
+                            <span> Return Book </span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="#" class="side-nav-link">
+                            <i class="uil-money-bill"></i>
+                            <span> Fines & Overdue </span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="#" class="side-nav-link">
+                            <i class="uil-chart-bar"></i>
                             <span> Reports </span>
                         </a>
                     </li>
+
                     <li class="side-nav-item">
-                        <a href="{{url_for('logout_admin')}}" class="side-nav-link">
+                        <a href="{{url_for('logout_librarian')}}" class="side-nav-link">
                             <i class="uil uil-sign-out-alt"></i>
                             <span> Logout </span>
                         </a>
                     </li>
-
 
                 </ul>
 
@@ -314,14 +344,15 @@
                                     style="width: 30px; height: 30px;">
                                     <span class="text-white d-flex justify-content-center" style="margin-top: 4px;">
 
-                                        {{ admin.name.split()[0][0] ~ admin.name.split()[1][0] }}
+                                        {{ librarian.name.split()[0][0] ~ librarian.name.split()[1][0] }}
 
                                     </span>
                                 </span>
                                 <span>
-                                    <span class="account-user-name text-capitalize">{{ admin.name.split()[:2] | join('
+                                    <span class="account-user-name text-capitalize">{{ librarian.name.split()[:2] |
+                                        join('
                                         ') }}</span>
-                                    <span class="account-position text-capitalize">{{admin.role}}</span>
+                                    <span class="account-position text-capitalize">{{librarian.role}}</span>
 
                                 </span>
                             </a>
@@ -332,11 +363,8 @@
                                     <h6 class="text-overflow m-0">Welcome !</h6>
                                 </div>
 
-
-
-
                                 <!-- item-->
-                                <a href="{{url_for('profile_admin')}}" class="dropdown-item notify-item">
+                                <a href="{{url_for('profile_librarian')}}" class="dropdown-item notify-item">
                                     <i class="mdi mdi-account-circle me-1"></i>
                                     <span>My Account</span>
                                 </a>
@@ -345,12 +373,10 @@
                                     <i class="mdi mdi-account-edit me-1"></i>
                                     <span>Change Password</span>
                                 </a>
-                                <!-- item-->
-                                <a href="{{url_for('logout_admin')}}" class="dropdown-item notify-item">
+                                <a href="{{url_for('logout_librarian')}}" class="dropdown-item notify-item">
                                     <i class="mdi mdi-logout me-1"></i>
                                     <span>Logout</span>
                                 </a>
-
                             </div>
                         </li>
 
@@ -571,49 +597,55 @@
                     <!-- Form with spinner and alerts -->
                     <!-- Form with spinner inside the button -->
                     <form id="changePasswordForm">
-    <div class="alert alert-danger d-none" id="passwordError"></div>
-    <div class="alert alert-success d-none" id="passwordSuccess"></div>
+                        <div class="alert alert-danger d-none" id="passwordError"></div>
+                        <div class="alert alert-success d-none" id="passwordSuccess"></div>
 
-    <input type="hidden" id="admin_id" value="{{admin.user_id}}">
+                        <input type="hidden" id="librarian_id" value="{{librarian.user_id}}">
 
-    <div class="mb-3">
-        <label class="form-label">Current Password</label>
-        <div class="input-group">
-            <input type="password" class="form-control" id="oldPassword">
-            <button class="btn btn-light" type="button" onclick="togglePasswordVisibility('oldPassword', this)">
-                <i class="fa-solid fa-eye-slash"></i>
-            </button>
-        </div>
-        <div id="oldPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
-    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="oldPassword">
+                                <button class="btn btn-light" type="button"
+                                    onclick="togglePasswordVisibility('oldPassword', this)">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                            <div id="oldPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;">
+                            </div>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label">New Password</label>
-        <div class="input-group">
-            <input type="password" class="form-control" id="newPassword">
-            <button class="btn btn-light" type="button" onclick="togglePasswordVisibility('newPassword', this)">
-                <i class="fa-solid fa-eye-slash"></i>
-            </button>
-        </div>
-        <div id="newPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
-    </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="newPassword">
+                                <button class="btn btn-light" type="button"
+                                    onclick="togglePasswordVisibility('newPassword', this)">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                            <div id="newPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;">
+                            </div>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Confirm New Password</label>
-        <div class="input-group">
-            <input type="password" class="form-control" id="confirmPassword">
-            <button class="btn btn-light" type="button" onclick="togglePasswordVisibility('confirmPassword', this)">
-                <i class="fa-solid fa-eye-slash"></i>
-            </button>
-        </div>
-        <div id="confirmPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
-    </div>
-</form>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmPassword">
+                                <button class="btn btn-light" type="button"
+                                    onclick="togglePasswordVisibility('confirmPassword', this)">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                            <div id="confirmPasswordFeedback"
+                                style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
+                        </div>
+                    </form>
 
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="changePasswordBtn"
-                        onclick="submit_password_admin()">
+                        onclick="submit_password_librarian()">
                         <span id="spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"
                             aria-hidden="true"></span>
                         <span id="btnText">Change Password</span>
@@ -630,7 +662,7 @@
     <!-- bundle -->
     <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/vendor.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/app.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/checking modes.js"></script>
     <!-- third party js -->
     <script
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/vendor/apexcharts.min.js"></script>
@@ -645,7 +677,7 @@
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/pages/demo.dashboard.js"></script>
     <!-- end demo js-->
 
-    <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/checking modes.js"></script>
+
     <!-- datatable party js -->
     <script
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/vendor/jquery.dataTables.min.js"></script>
@@ -676,7 +708,7 @@
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/pages/demo.datatable-init.js"></script>
     <!-- datatable end demo js-->
 
-    <script src="{{url_for('static', filename='js/admin/admin_password_change.js')}}"></script>
+    <script src="{{url_for('static', filename='js/librarian/librarian_password_change.js')}}"></script>
 
 
 </body>

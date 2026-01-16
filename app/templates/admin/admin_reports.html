@@ -1,0 +1,105 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}System Reports | LMS{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <i class="fa fa-download"></i> Export Report
+                </button>
+            </div>
+            <h4 class="page-title">System Reports</h4>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="issue">Borrow / Return</option>
+                    <option value="reading">In-Library Reading</option>
+                    <option value="request">Requests</option>
+                    <option value="fine">Fines</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <input type="date" name="from" class="form-control">
+            </div>
+
+            <div class="col-md-3">
+                <input type="date" name="to" class="form-control">
+            </div>
+
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100">
+                    <i class="fa fa-filter"></i> Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Unified Report Table -->
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Book</th>
+                    <th>Copy</th>
+                    <th>Member</th>
+                    <th>Librarian</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr>
+                    <td>
+                        <span class="badge bg-info">{{ r.report_type }}</span>
+                    </td>
+                    <td>{{ r.ref_id }}</td>
+                    <td>{{ r.book_title or '-' }}</td>
+                    <td>{{ r.copy_id or '-' }}</td>
+                    <td>{{ r.member_name }}</td>
+                    <td>{{ r.librarian_name or '-' }}</td>
+                    <td>{{ r.activity_date }}</td>
+                    <td>{{ r.status }}</td>
+                    <td>{{ r.amount or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Download Report</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <a href="{{ url_for('export_report', format='pdf') }}" target="_blank">PDF</a>
+                <a href="{{ url_for('export_report', format='excel') }}" target="_blank">Excel</a>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "member/member_base.html" %}
+
+{% block title %}In-Library Reading | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item">LMS</li>
+                    <li class="breadcrumb-item">Member</li>
+                    <li class="breadcrumb-item active">In-Library Reading</li>
+                </ol>
+            </div>
+            <h4 class="page-title">In-Library Reading</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Book Title</th>
+                            <th>Start Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if reading_sessions %}
+                        {% for session in reading_sessions %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ session.book_title }}</td>
+                            <td>{{ session.start_time.strftime('%Y-%m-%d %H:%M') if session.start_time else '' }}</td>
+                            <td>
+                                {% if session.status == 'In Use' %}
+                                <span class="badge bg-info">In Use</span>
+                                {% else %}
+                                <span class="badge bg-success">Finished ({{ session.end_time.strftime('%H:%M')
+                                    }})</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                No in-library reading records
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

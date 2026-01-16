@@ -1,0 +1,115 @@
+{% extends 'admin/admin_base.html' %}
+{% block content %}
+<title>{% block title %}Admin | Profile{% endblock %}</title>
+
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item active">Admin profile</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Profile page</h4>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card text-center">
+            <div class="card-body w-100">
+                <div class="position-relative d-inline-block">
+                    
+                    <div class="d-flex align-items-center justify-content-center text-white rounded-circle bg-primary"
+                        style="width: 100px;height: 100px;">
+                        <span class="text-uppercase fs-1">
+                            {{ admin.name.split(' ')[0][0] }}{{ admin.name.split(' ')[1][0] }}
+                        </span>
+                    </div>
+                    <!-- <i class="fa-solid fa-camera position-absolute top-50 start-100 translate-middle bg-white rounded-circle border"
+                        data-bs-toggle="modal" data-bs-target="#editProfileModal"></i> -->
+                   
+                </div>
+
+                <h4 class="mb-0 mt-2 text-capitalize">{{ admin.name.split(' ')[0] }} {{ admin.name.split(' ')[1] }}
+                </h4>
+                <p class="text-muted font-14">Admin</p>
+                <div class="d-flex align-items-center flex-column flex-lg-row gap-0 gap-lg-2">
+                    <div class="text-start mt-3 mx-auto mt-2" style="max-width: 600px;">
+                        <h4 class="font-16 text-uppercase">About Me :</h4>
+                        <p class="text-muted font-16 mb-3">
+                            Hi I'm <span class="text-capitalize">{{ admin.name.split(' ')[0] }} {{ admin.name.split(' ')[1] }}</span>, has been the industry's
+                            standard
+                            dummy text ever since the
+                            1500s, when an unknown printer took a galley of type.
+                        </p>
+                        <p class="text-muted mb-2 font-16"><strong>Full Name :</strong> <span
+                                class="ms-2">{{admin.name}}</span>
+                        </p>
+
+
+                        <p class="text-muted mb-2 font-16"><strong>Email :</strong> <span
+                                class="ms-2 ">{{admin.email}}</span>
+                        </p>
+
+                        <button class="btn btn-primary mt-1" type="button" onclick="toggleFormVisibility()">Edit Profile
+                            info <i class="mdi mdi-square-edit-outline"></i>
+                        </button>
+                    </div>
+                    <form class="form mt-3 w-100 w-lg-50 mx-auto border p-2 d-none" id="formChange"
+                        style="text-align: left !important;">
+                        <h4>Change admin details</h4>
+                        <div class="alert alert-success" role="alert" style="display: none;" id="alert_success">
+                          </div>
+                          <div class="alert alert-danger" role="alert" style="display: none;" id="alert_error">
+                          </div>
+                        <input type="hidden" value="{{admin.user_id}}" id="admin_id">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Name<span class="text-danger">*</span></label>
+                                    <input class="form-control" type="text" id="name" name="name" value="{{admin.name}}"
+                                        required>
+                                    <!-- Custom error message -->
+                                    <div class="error-message text-danger" id="nameError"
+                                        style="display: none; margin-top: 0.25rem;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="type_email" class="form-label">Email address<span
+                                            class="text-danger">*</span></label>
+                                    <input type="email" id="type_email" class="form-control" name="email"
+                                        value="{{admin.email}}" required>
+                                    <!-- Custom error message -->
+                                    <div class="error-message text-danger" id="emailError"
+                                        style="display: none; margin-top: 0.25rem;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-12 d-flex justify-content-end">
+                                <div class="text-sm-end">
+                                    <button class="btn btn-primary btn-with-spinner" type="button"
+                                        onclick="submit_changes()">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status"
+                                            aria-hidden="true"></span>
+                                        <span class="button-text">Submit</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+
+            </div> <!-- end card-body -->
+        </div> <!-- end card -->
+    </div>
+</div>
+<script src="{{url_for('static', filename = 'js/admin/admin_password_change.js')}}"></script>
+ {% endblock %}

@@ -1,0 +1,105 @@
+{% extends "member/member_base.html" %}
+
+{% block title %}Borrowed History | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Member</a></li>
+                    <li class="breadcrumb-item active">Borrowed History</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Borrowed History</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Book Title</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                            <th>Fine</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if borrowed_history %}
+                            {% for record in borrowed_history %}
+                            <tr>
+                                <td class="align-middle">{{ loop.index }}</td>
+
+                                <td class="align-middle">
+                                    {{ record.book_title }}
+                                </td>
+
+                                <td class="align-middle">
+                                    {{ record.borrow_date }}
+                                </td>
+
+                                <td class="align-middle">
+                                    {{ record.due_date }}
+                                </td>
+
+                                <td class="align-middle">
+                                    {{ record.return_date or '—' }}
+                                </td>
+
+                                <td class="align-middle">
+                                    {% if record.status == 'Returned' %}
+                                        <span class="badge bg-success">Returned</span>
+                                    {% elif record.status == 'Overdue' %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Borrowed</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="align-middle">
+                                    {% if record.fine_amount and record.fine_amount > 0 %}
+                                        <span class="badge bg-danger">
+                                            ${{ record.fine_amount }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">No Fine</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    No borrowing history found
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </div><!-- end card body -->
+        </div><!-- end card -->
+    </div><!-- end col -->
+</div>
+<!-- end row -->
+{% endblock %}

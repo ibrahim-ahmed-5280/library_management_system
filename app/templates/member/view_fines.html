@@ -1,0 +1,114 @@
+{% extends "member/member_base.html" %}
+
+{% block title %}View Fines | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Fines</a></li>
+                    <li class="breadcrumb-item active">View</li>
+                </ol>
+            </div>
+            <h4 class="page-title">View Fines</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Book Title</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Days Overdue</th>
+                            <th>Fine Amount</th>
+                            <th>Payment Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if fines %}
+                        {% for fine in fines %}
+                        <tr>
+                            <td class="align-middle">{{ loop.index }}</td>
+
+                            <td class="align-middle">
+                                <strong>{{ fine.book_title }}</strong>
+                            </td>
+
+                            <td class="align-middle">
+                                {{ fine.due_date }}
+                            </td>
+
+                            <td class="align-middle">
+                                {{ fine.return_date if fine.return_date else 'Not Returned' }}
+                            </td>
+
+                            <td class="align-middle">
+                                {# Show overdue days only if it's actually positive #}
+                                <span class="badge bg-danger">
+                                    {{ fine.days_overdue if fine.days_overdue > 0 else 0 }} days
+                                </span>
+                            </td>
+
+                            <td class="align-middle">
+                                <span class="badge bg-warning text-dark">
+                                    ${{ "{:,.2f}".format(fine.fine_amount) }}
+                                </span>
+                            </td>
+
+                            <td class="align-middle">
+                                {# Standardizing check for 'paid' or 'Paid' #}
+                                {% if fine.payment_status|lower == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                                {% else %}
+                                <span class="badge bg-danger">Unpaid</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="align-middle">
+                                {% if fine.payment_status|lower != 'paid' %}
+                                <form action="/pay_fine" method="POST" style="display:inline;">
+                                    <input type="hidden" name="fine_id" value="{{ fine.fine_id }}">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        Pay Now
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted">Cleared</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No fine records found.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </div> <!-- end card body-->
+        </div> <!-- end card -->
+    </div><!-- end col-->
+</div>
+<!-- end row-->
+{% endblock %}

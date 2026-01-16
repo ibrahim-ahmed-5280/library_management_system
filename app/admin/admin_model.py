@@ -291,6 +291,146 @@ class AdminModel:
                 print(f'Error: {e}')
                 return False, f'Error {e}.'
 
+    def get_system_reports(self):
+        self.cursor.execute("""
+                            SELECT 'Borrow/Return'        AS report_type,
+                                   i.issue_id             AS ref_id,
+                                   b.title                AS book_title,
+                                   bc.copy_id,
+                                   m.name                 AS member_name,
+                                   l.name                 AS librarian_name,
+                                   i.issue_date           AS activity_date,
+                                   i.status,
+                                   IFNULL(f.amount, NULL) AS amount
+                            FROM issues i
+                                     JOIN book_copies bc ON i.copy_id = bc.copy_id
+                                     JOIN editions e ON bc.edition_id = e.edition_id
+                                     JOIN books b ON e.book_id = b.book_id
+                                     JOIN users m ON i.member_id = m.user_id
+                                     JOIN users l ON i.librarian_id = l.user_id
+                                     LEFT JOIN fines f ON i.issue_id = f.issue_id
+
+                            UNION ALL
+
+                            SELECT 'Reading' AS report_type,
+                                   rs.reading_id,
+                                   b.title,
+                                   bc.copy_id,
+                                   m.name,
+                                   l.name,
+                                   rs.start_time,
+                                   'completed',
+                                   NULL
+                            FROM reading_sessions rs
+                                     JOIN book_copies bc ON rs.copy_id = bc.copy_id
+                                     JOIN editions e ON bc.edition_id = e.edition_id
+                                     JOIN books b ON e.book_id = b.book_id
+                                     JOIN users m ON rs.member_id = m.user_id
+                                     JOIN users l ON rs.librarian_id = l.user_id
+
+                            UNION ALL
+
+                            SELECT 'Request' AS report_type,
+                                   r.request_id,
+                                   NULL,
+                                   NULL,
+                                   u.name,
+                                   NULL,
+                                   r.request_date,
+                                   r.status,
+                                   NULL
+                            FROM requests r
+                                     JOIN users u ON r.member_id = u.user_id
+
+                            UNION ALL
+
+                            SELECT 'Fine' AS report_type,
+                                   f.fine_id,
+                                   NULL,
+                                   NULL,
+                                   u.name,
+                                   NULL,
+                                   CURDATE(),
+                                   f.paid_status,
+                                   f.amount
+                            FROM fines f
+                                     JOIN users u ON f.member_id = u.user_id
+                            ORDER BY activity_date DESC
+                            """)
+
+        return self.cursor.fetchall()
+
+    # =============== Dashboard data ======================#
+    def _rows_to_dict(self, rows):
+            columns = [col[0] for col in self.cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+
+    def total_books(self):
+            self.cursor.execute("SELECT COUNT(*) AS total FROM books")
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def total_members(self):
+            self.cursor.execute("""
+                                SELECT COUNT(*) AS total
+                                FROM users
+                                WHERE role = 'member'
+                                """)
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def borrowed_books(self):
+            self.cursor.execute("""
+                                SELECT COUNT(*) AS total
+                                FROM book_copies
+                                WHERE status = 'borrowed'
+                                """)
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def overdue_books(self):
+            self.cursor.execute("""
+                                SELECT COUNT(*) AS total
+                                FROM issues
+                                WHERE status = 'borrowed'
+                                  AND due_date < CURDATE()
+                                """)
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def total_staff(self):
+            self.cursor.execute("""
+                                SELECT COUNT(*) AS total
+                                FROM users
+                                WHERE role IN ('admin', 'librarian')
+                                """)
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def total_categories(self):
+            self.cursor.execute("SELECT COUNT(*) AS total FROM categories")
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def total_reservations(self):
+            self.cursor.execute("""
+                                SELECT COUNT(*) AS total
+                                FROM requests
+                                WHERE request_type = 'reservation'
+                                  AND status = 'reserved'
+                                """)
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
+
+    def new_books_this_month(self):
+            self.cursor.execute("""
+                                SELECT COUNT(*) AS total
+                                FROM books
+                                WHERE MONTH (created_at) = MONTH (CURRENT_DATE ())
+                                  AND YEAR (created_at) = YEAR (CURRENT_DATE ())
+                                """)
+            result = self._rows_to_dict(self.cursor.fetchall())
+            return result[0]['total']
 
     #==============================================#
     #========== UPDATE OPERATIONS =================#
@@ -352,96 +492,83 @@ class AdminModel:
                 return False,f"Error {e}."
 
     # update policy details
-    def update_policy(self, policy_name, policy_key, policy_value, description, user_id):
+    def update_policy(self, policy_id, policy_name, policy_key, policy_value, description, user_id):
+        # Added WHERE policy_id = %s to target only ONE row
         sql = """
-               UPDATE library_policies 
-               SET policy_name = %s , 
-               policy_key = %s ,
-               policy_value = %s,
-               description = %s,
-               updated_by = %s;
+              UPDATE library_policies
+              SET policy_name  = %s,
+                  policy_key   = %s,
+                  policy_value = %s,
+                  description  = %s,
+                  updated_by   = %s
+              WHERE policy_id = %s;
               """
         try:
-            self.cursor.execute(sql, (policy_name, policy_key, policy_value, description,user_id))
-            self.connection.commit()  # Commit the transaction
-            print(f"Member updated successfully.")
-            return True, f'Member updated successfully.'""
+            # Pass policy_id as the last argument
+            self.cursor.execute(sql, (policy_name, policy_key, policy_value, description, user_id, policy_id))
+            self.connection.commit()
+            return True, "Policy updated successfully."
         except Exception as e:
             print(f"Error: {e}")
-            print(f'there is an error happen.')
-            return False, f"Error {e}."
+            return False, f"Error: {e}"
+    # change admin password
+    def change_admin_password(self, password, admin_id):
+            sql = """
+                  UPDATE users
+                  SET password = %s
+                  WHERE user_id = %s; \
+                  """
+            try:
+                self.cursor.execute(sql, (password, admin_id))
+                self.connection.commit()  # Commit the transaction
+                print(f"success happen.")
+                return True
+            except Exception as e:
+                print(f"Error: {e}")
+                print(f'there is an error happen.')
+                return False
 
-    #=============== Dashboard data ======================#
-    def _rows_to_dict(self, rows):
-        columns = [col[0] for col in self.cursor.description]
-        return [dict(zip(columns, row)) for row in rows]
+    # change admin details
+    def update_admin_details(self, admin_data):
+            print("in modal", admin_data)
+            """
+            Update admin details in admin_login table
+            """
+            sql = """
+                  UPDATE users \
+                  SET name  = %s, \
+                      email = %s
+                  WHERE user_id = %s; \
+                  """
 
-    def total_books(self):
-        self.cursor.execute("SELECT COUNT(*) AS total FROM books")
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+            try:
+                values = (
+                    admin_data.get('name'),
+                    admin_data.get('email'),  # address is optional
+                    int(admin_data.get('admin_id'))
+                )
 
-    def total_members(self):
-        self.cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM users
-            WHERE role = 'member'
-        """)
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+                self.cursor.execute(sql, values)
+                self.connection.commit()
 
-    def borrowed_books(self):
-        self.cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM book_copies
-            WHERE status = 'borrowed'
-        """)
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+                if self.cursor.rowcount == 0:
+                    return False, 'No admin found with that ID or no changes made'
 
-    def overdue_books(self):
-        self.cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM issues
-            WHERE status = 'borrowed'
-              AND due_date < CURDATE()
-        """)
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+                return True, 'User details updated successfully'
 
-    def total_staff(self):
-        self.cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM users
-            WHERE role IN ('admin', 'librarian')
-        """)
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+            except Exception as e:
+                self.connection.rollback()
+                print(f"Error updating admin details: {str(e)}")
 
-    def total_categories(self):
-        self.cursor.execute("SELECT COUNT(*) AS total FROM categories")
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+                # Handle duplicate email/phone errors
+                if "Duplicate entry" in str(e) and "email" in str(e):
+                    return False, 'Email is already in use by another user'
+                if "Duplicate entry" in str(e) and "phone" in str(e):
+                    return False, 'Phone number is already in use by another user'
 
-    def total_reservations(self):
-        self.cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM requests
-            WHERE request_type = 'reservation'
-              AND status = 'reserved'
-        """)
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+                return False, f'Database error: {str(e)}'
 
-    def new_books_this_month(self):
-        self.cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM books
-            WHERE MONTH(created_at) = MONTH(CURRENT_DATE())
-              AND YEAR(created_at) = YEAR(CURRENT_DATE())
-        """)
-        result = self._rows_to_dict(self.cursor.fetchall())
-        return result[0]['total']
+
 
 admin_db_configuration = DbConfiguration()
 

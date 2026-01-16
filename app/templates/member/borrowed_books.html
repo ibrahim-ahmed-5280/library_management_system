@@ -1,0 +1,89 @@
+{% extends "member/member_base.html" %}
+
+{% block title %}My Borrowed Books | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item">LMS</li>
+                    <li class="breadcrumb-item">Member</li>
+                    <li class="breadcrumb-item active">My Borrowed Books</li>
+                </ol>
+            </div>
+            <h4 class="page-title">My Borrowed Books</h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Book Title</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Days Left</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if borrowed_books %}
+                            {% for book in borrowed_books %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ book.book_title }}</td>
+                                <td>{{ book.borrow_date }}</td>
+                                <td>{{ book.due_date }}</td>
+
+                                <td>
+                                    {% if book.days_left >= 0 %}
+                                        <span class="badge bg-success">
+                                            {{ book.days_left }} days
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            Overdue
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if book.days_left < 0 %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Borrowed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    No borrowed books
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

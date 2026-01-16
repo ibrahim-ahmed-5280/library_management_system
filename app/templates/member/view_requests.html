@@ -1,0 +1,136 @@
+{% extends "member/member_base.html" %}
+
+{% block title %}View currently request | LMS{% endblock %}
+
+{% block content %}
+<style>
+    .dt-buttons {
+        display: none !important;
+    }
+</style>
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Member</a></li>
+                    <li class="breadcrumb-item active">View requests</li>
+                </ol>
+            </div>
+            <h4 class="page-title">My requests in books</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Book Title</th>
+                            <th>Request Type</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% if member_requests %}
+                        {% for req in member_requests %}
+                        <tr>
+                            <td class="align-middle">{{ loop.index }}</td>
+
+                            <td class="align-middle">
+                                {{ req.book_title }}
+                            </td>
+
+                            <td class="align-middle">
+                                {% if req.request_type == 'borrow' %}
+                                <span class="badge bg-primary">Borrow</span>
+                                {% else %}
+                                <span class="badge bg-info">Reserve</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="align-middle">
+                                {{ req.request_date }}
+                            </td>
+
+                            <td class="align-middle">
+                                {% if req.request_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif req.request_status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                                {% elif req.request_status == 'cancelled' %}
+                                <span class="badge bg-secondary">Cancelled</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="align-middle">
+                                {% if req.request_status == 'pending' %}
+                                <!-- Loop through requests -->
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                    data-bs-target="#cancelModal{{ req.request_id }}">
+                                    Cancel
+                                </button>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="cancelModal{{ req.request_id }}" tabindex="-1"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Cancel Request</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to cancel this request?
+                                                <div class="alert d-none mt-3" id="cancelAlert{{ req.request_id }}">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">No</button>
+                                                <button type="button" class="btn btn-danger"
+                                                    onclick="confirmCancel('{{ req.request_id }}')">Yes, Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                No requests found
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+
+            </div><!-- end card body -->
+        </div><!-- end card -->
+    </div><!-- end col -->
+</div>
+<!-- end row -->
+
+<script src="{{url_for('static',filename = 'js/member/cancel_requests.js')}}"></script>
+{% endblock %}

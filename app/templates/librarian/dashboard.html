@@ -1,4 +1,4 @@
-{% extends "admin/admin_base.html" %}
+{% extends "librarian/admin_base.html" %}
 
 {% block title %}Admin Dashboard | LMS{% endblock %}
 
@@ -13,6 +13,7 @@
 </div>
 <!-- end page title -->
 
+
 <div class="row">
 
     <!-- Total Books -->
@@ -23,10 +24,105 @@
                     <i class="mdi mdi-book-multiple widget-icon"></i>
                 </div>
                 <h5 class="text-muted fw-normal mt-0">Total Books</h5>
-                <h3 class="mt-3 mb-3">12,540</h3>
+                <h3 class="mt-3 mb-3">{{ lib_stats.total_books }}</h3>
                 <p class="mb-0 text-muted">
-                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 4.2%</span>
-                    <span>This month</span>
+                    <span class="text-muted">All time</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Copies -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-bookshelf widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Total Copies</h5>
+                <h3 class="mt-3 mb-3">{{ lib_stats.total_copies }}</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-muted">All copies</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Copies -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-book-open-variant widget-icon text-success"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Available Copies</h5>
+                <h3 class="mt-3 mb-3">{{ lib_stats.available_copies }}</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-success">Ready to borrow</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Issued Books -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-bookmark-check widget-icon text-warning"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Issued Books</h5>
+                <h3 class="mt-3 mb-3">{{ lib_stats.issued_books }}</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-warning">Currently borrowed</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Books -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-clock-alert widget-icon text-danger"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Overdue Books</h5>
+                <h3 class="mt-3 mb-3 text-danger">{{ lib_stats.overdue_books }}</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-danger">Needs attention</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reserved Requests -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-bookmark-plus widget-icon"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">Reserved Requests</h5>
+                <h3 class="mt-3 mb-3">{{ lib_stats.reserved_requests }}</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-muted">Active reservations</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-Library Reading -->
+    <div class="col-md-4 col-lg-3">
+        <div class="card widget-flat">
+            <div class="card-body">
+                <div class="float-end">
+                    <i class="mdi mdi-library-shelves widget-icon text-info"></i>
+                </div>
+                <h5 class="text-muted fw-normal mt-0">In-Library Reading</h5>
+                <h3 class="mt-3 mb-3">{{ lib_stats.in_library_reading }}</h3>
+                <p class="mb-0 text-muted">
+                    <span class="text-info">Being read in library</span>
                 </p>
             </div>
         </div>
@@ -40,112 +136,9 @@
                     <i class="mdi mdi-account-group widget-icon"></i>
                 </div>
                 <h5 class="text-muted fw-normal mt-0">Total Members</h5>
-                <h3 class="mt-3 mb-3">3,814</h3>
+                <h3 class="mt-3 mb-3">{{ lib_stats.total_members }}</h3>
                 <p class="mb-0 text-muted">
-                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 2.8%</span>
-                    <span>This month</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Borrowed Books (Current) -->
-    <div class="col-md-4 col-lg-3">
-        <div class="card widget-flat">
-            <div class="card-body">
-                <div class="float-end">
-                    <i class="mdi mdi-book-open-variant widget-icon"></i>
-                </div>
-                <h5 class="text-muted fw-normal mt-0">Borrowed Books</h5>
-                <h3 class="mt-3 mb-3">482</h3>
-                <p class="mb-0 text-muted">
-                    <span class="text-danger me-2"><i class="mdi mdi-arrow-down-bold"></i> 1.1%</span>
-                    <span>Last week</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overdue Books -->
-    <div class="col-md-4 col-lg-3">
-        <div class="card widget-flat">
-            <div class="card-body">
-                <div class="float-end">
-                    <i class="mdi mdi-clock-alert widget-icon"></i>
-                </div>
-                <h5 class="text-muted fw-normal mt-0">Overdue Books</h5>
-                <h3 class="mt-3 mb-3">39</h3>
-                <p class="mb-0 text-muted">
-                    <span class="text-danger me-2"><i class="mdi mdi-arrow-up-bold"></i> 8.7%</span>
-                    <span>Needs attention</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Staff -->
-    <div class="col-md-4 col-lg-3">
-        <div class="card widget-flat">
-            <div class="card-body">
-                <div class="float-end">
-                    <i class="mdi mdi-account-tie widget-icon"></i>
-                </div>
-                <h5 class="text-muted fw-normal mt-0">Staff Members</h5>
-                <h3 class="mt-3 mb-3">14</h3>
-                <p class="mb-0 text-muted">
-                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.5%</span>
-                    <span class="text-muted">This month</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Categories -->
-    <div class="col-md-4 col-lg-3">
-        <div class="card widget-flat">
-            <div class="card-body">
-                <div class="float-end">
-                    <i class="mdi mdi-shape-plus widget-icon"></i>
-                </div>
-                <h5 class="text-muted fw-normal mt-0">Categories</h5>
-                <h3 class="mt-3 mb-3">32</h3>
-                <p class="mb-0 text-muted">
-                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.5%</span>
-                    <span class="text-muted">This month</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reservations -->
-    <div class="col-md-4 col-lg-3">
-        <div class="card widget-flat">
-            <div class="card-body">
-                <div class="float-end">
-                    <i class="mdi mdi-bookmark-check widget-icon"></i>
-                </div>
-                <h5 class="text-muted fw-normal mt-0">Reservations</h5>
-                <h3 class="mt-3 mb-3">67</h3>
-                <p class="mb-0 text-muted">
-                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 3.5%</span>
-                    <span>This month</span>
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- New Books This Month -->
-    <div class="col-md-4 col-lg-3">
-        <div class="card widget-flat">
-            <div class="card-body">
-                <div class="float-end">
-                    <i class="mdi mdi-plus-box widget-icon"></i>
-                </div>
-                <h5 class="text-muted fw-normal mt-0">New Books Added</h5>
-                <h3 class="mt-3 mb-3">120</h3>
-                <p class="mb-0 text-muted">
-                    <span class="text-success me-2"><i class="mdi mdi-arrow-up-bold"></i> 12%</span>
-                    <span>This month</span>
+                    <span class="text-muted">Active members</span>
                 </p>
             </div>
         </div>
@@ -153,34 +146,36 @@
 
 </div>
 
+
+
 <!-- end row -->
 <!-- Row 1: Fines & Books by Branch -->
 <div class="row">
     <!-- Fines Chart -->
-    <div class="col-lg-6">
+    <!-- <div class="col-lg-6">
         <div class="card">
             <div class="card-body">
                 <h4 class="header-title mb-3">Fines & Membership Revenue</h4>
                 <div id="fines-chart" class="apex-charts" style="height: 300px;"></div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Books by Category -->
-    <div class="col-lg-6">
+    <!-- <div class="col-lg-6">
         <div class="card">
             <div class="card-body">
                 <h4 class="header-title">Books by Category</h4>
                 <div id="category-chart" style="height: 300px;"></div>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <!-- Row 2: Top Borrowed Books, Borrowings vs Returns, Recent Activity -->
 <div class="row">
     <!-- Top Borrowed Books Table -->
-    <div class="col-xl-6 col-lg-12">
+    <!-- <div class="col-xl-6 col-lg-12">
         <div class="card">
             <div class="card-body">
                 <h4 class="header-title mb-3">Top Borrowed Books</h4>
@@ -204,17 +199,17 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Borrowings vs Returns Chart -->
-    <div class="col-lg-6">
+    <!-- <div class="col-lg-6">
         <div class="card">
             <div class="card-body">
                 <h4 class="header-title mb-3">Borrowings vs Returns</h4>
                 <div id="borrow-return-chart" style="height: 300px;"></div>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <!-- ApexCharts JS -->
@@ -251,6 +246,8 @@
         new ApexCharts(document.querySelector("#borrow-return-chart"), borrowReturnOptions).render();
     });
 </script>
+
+
 
 
 

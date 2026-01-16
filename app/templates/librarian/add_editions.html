@@ -1,0 +1,106 @@
+{% extends "librarian/admin_base.html" %}
+
+{% block title %}Add Editions | LMS{% endblock %}
+
+{% block content %}
+
+<!-- start page title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box">
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">LMS</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);">Add</a></li>
+                    <li class="breadcrumb-item active">Editions</li>
+                </ol>
+            </div>
+            <h4 class="page-title">Registration book editions</h4>
+        </div>
+    </div>
+</div>
+<!-- end page title -->
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+
+                <div class="alert alert-success" role="alert" id="succ_msg" style="display: none;">
+                    A simple success alert—check it out!
+                </div>
+                <div class="alert alert-danger" role="alert" id="err_msg" style="display: none;">
+                    A simple danger alert—check it out!
+                </div>
+                <form id="editionForm" novalidate>
+
+                    <div class="alert alert-success d-none" id="edition_succ_msg"></div>
+                    <div class="alert alert-danger d-none" id="edition_error_msg"></div>
+
+                    <div class="row">
+
+                        <!-- Book -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Book</label>
+                            <select name="book_id" class="form-select" required>
+                                <option value="">Select Book</option>
+                                {% for book in books %}
+                                <option value="{{ book.book_id }}">{{ book.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a book.
+                            </div>
+                        </div>
+
+                        <!-- Edition Number -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Edition Number</label>
+                            <input type="text" name="edition_number" class="form-control"
+                                placeholder="Enter edition number" required minlength="2" maxlength="30"
+                                pattern="[A-Za-z0-9 .\-]+">
+                            <div class="invalid-feedback">
+                                Edition must be 2–30 characters (letters, numbers, . -).
+                            </div>
+                        </div>
+
+                        <!-- Publisher -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Publisher</label>
+                            <input type="text" name="publisher" class="form-control" placeholder="Publisher name"
+                                minlength="9" maxlength="100" pattern="[A-Za-z0-9 .'\-&]+" required>
+                            <div class="invalid-feedback">
+                                Publisher must be 2–100 valid characters.
+                            </div>
+                        </div>
+
+                        <!-- Year -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Publication Year</label>
+                            <input type="number" name="publication_year" class="form-control"
+                                placeholder="Publication year" min="1450" max="{{ current_year }}" required>
+                            <div class="invalid-feedback">
+                                Year must be between 1450 and {{ current_year }}.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary" onclick="add_edition()">
+                            <span id="editionSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                            <span id="editionBtnText">Add Edition</span>
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="{{url_for('static', filename = 'js/librarian/register_books_editions_copies.js')}}"></script>
+{% endblock %}

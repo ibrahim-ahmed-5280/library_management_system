@@ -61,7 +61,7 @@ class LibrarianModel:
         query = """
             SELECT *
             FROM users
-            WHERE email = %s AND role = 'librarian'
+            WHERE email = %s AND role = 'librarian' AND status = 'active'
             LIMIT 1
         """
         user = self.fetch_one(query, (email,))
@@ -274,50 +274,50 @@ class LibrarianModel:
             return False
 
     #=========== requests ==========================#
-    # def get_requests_by_type(self, request_type):
-    #         self.cursor.execute("""
-    #                             SELECT r.request_id,
-    #                                    r.member_id,
-    #                                    r.edition_id,
-    #                                    r.request_type,
-    #                                    r.status,
-    #                                    r.initiated_by,
-    #                                    r.request_date,
-    #                                    r.decision_date,
-    #                                    r.librarian_id,
-    #                                    r.note,
-    #                                    u.name  AS member_name,
-    #                                    b.title AS book_title,
-    #                                    e.edition_number
-    #                             FROM requests r
-    #                                      JOIN users u ON r.member_id = u.user_id
-    #                                      JOIN editions e ON r.edition_id = e.edition_id
-    #                                      JOIN books b ON e.book_id = b.book_id
-    #                             WHERE r.request_type = %s
-    #                             ORDER BY r.request_date DESC
-    #                             """, (request_type,))
-    #         return self.cursor.fetchall()
+    def get_requests_by_type(self, request_type):
+            self.cursor.execute("""
+                                SELECT r.request_id,
+                                       r.member_id,
+                                       r.edition_id,
+                                       r.request_type,
+                                       r.status,
+                                       r.initiated_by,
+                                       r.request_date,
+                                       r.decision_date,
+                                       r.librarian_id,
+                                       r.note,
+                                       u.name  AS member_name,
+                                       b.title AS book_title,
+                                       e.edition_number
+                                FROM requests r
+                                         JOIN users u ON r.member_id = u.user_id
+                                         JOIN editions e ON r.edition_id = e.edition_id
+                                         JOIN books b ON e.book_id = b.book_id
+                                WHERE r.request_type = %s
+                                ORDER BY r.request_date DESC
+                                """, (request_type,))
+            return self.cursor.fetchall()
 
-    # def update_request(self, request_id, member_id, edition_id):
-    #         query = """
-    #                 UPDATE requests
-    #                 SET member_id=%s, \
-    #                     edition_id=%s, \
-    #                 WHERE request_id = %s \
-    #                 """
-    #         self.cursor.execute(query, (member_id, edition_id, request_id))
-    #         self.connection.commit()
-    #         return self.cursor.rowcount > 0
+    def update_request(self, request_id, member_id, edition_id):
+            query = """
+                    UPDATE requests
+                    SET member_id=%s, \
+                        edition_id=%s, \
+                    WHERE request_id = %s \
+                    """
+            self.cursor.execute(query, (member_id, edition_id, request_id))
+            self.connection.commit()
+            return self.cursor.rowcount > 0
 
-    # def update_request_status(self, request_id, status):
-    #     query = """
-    #             UPDATE requests
-    #             SET status = %s
-    #             WHERE request_id = %s \
-    #             """
-    #     self.cursor.execute(query, (status, request_id))
-    #     self.connection.commit()
-    #     return self.cursor.rowcount > 0
+    def update_request_status(self, request_id, status):
+        query = """
+                UPDATE requests
+                SET status = %s
+                WHERE request_id = %s \
+                """
+        self.cursor.execute(query, (status, request_id))
+        self.connection.commit()
+        return self.cursor.rowcount > 0
 
     #============= ISSUES ==========================#
     def get_all_issues(self):
@@ -473,12 +473,15 @@ class LibrarianModel:
                             SELECT COUNT(*) >= (SELECT CAST(policy_value AS UNSIGNED)
                                                 FROM library_policies
                                                 WHERE policy_key = 'allowed_borrowed'
-                                       LIMIT 1 )
+                                       LIMIT 1 ) as is_reached
                             FROM issues
                             WHERE member_id = %s
                               AND status = 'borrowed'
                             """, (member_id,))
-        return bool(self.cursor.fetchone()[0])
+
+        result = self.cursor.fetchone()
+        # Using .get() prevents a crash if the result is None
+        return bool(result.get('is_reached')) if result else False
 
 
     def update_status_issue(self, issue_id, status):
@@ -502,8 +505,11 @@ class LibrarianModel:
                        i.member_id, \
                        i.copy_id, \
                        i.request_id,
-                       i.due_date
+                       i.due_date,
+                       e.edition_id \
                 FROM issues i
+                    JOIN book_copies c ON c.copy_id = i.copy_id
+                    JOIN editions e ON e.edition_id = c.edition_id
                 WHERE i.issue_id = %s LIMIT 1 \
                 """
         self.cursor.execute(query, (issue_id,))
@@ -577,14 +583,14 @@ class LibrarianModel:
                              """)
         return row['total'] if row else 0
 
-    # def reserved_requests(self):
-    #     row = self.fetch_one("""
-    #                          SELECT COUNT(*) AS total
-    #                          FROM requests
-    #                          WHERE request_type = 'reservation'
-    #                            AND status = 'reserved'
-    #                          """)
-    #     return row['total'] if row else 0
+    def reserved_requests(self):
+        row = self.fetch_one("""
+                             SELECT COUNT(*) AS total
+                             FROM requests
+                             WHERE request_type = 'reserve'
+                               AND status = 'pending'
+                             """)
+        return row['total'] if row else 0
 
     def in_library_reading(self):
         row = self.fetch_one("""
@@ -602,6 +608,62 @@ class LibrarianModel:
                              """)
         return row['total'] if row else 0
 
+    # change librarian password
+    def change_librarian_password(self, password, librarian_id):
+            sql = """
+                  UPDATE users
+                  SET password = %s
+                  WHERE user_id = %s; \
+                  """
+            try:
+                self.cursor.execute(sql, (password, librarian_id))
+                self.connection.commit()  # Commit the transaction
+                print(f"success happen.")
+                return True
+            except Exception as e:
+                print(f"Error: {e}")
+                print(f'there is an error happen.')
+                return False
+
+    # change librarian details
+    def update_librarian_details(self,librarian_data):
+            print("in modal ",librarian_data)
+            """
+            Update librarian details in admin_login table
+            """
+            sql = """
+                  UPDATE users \
+                  SET name  = %s, \
+                      email = %s
+                  WHERE user_id = %s; \
+                  """
+
+            try:
+                values = (
+                    librarian_data.get('name'),
+                    librarian_data.get('email'),  # address is optional
+                    int(librarian_data.get('librarian_id'))
+                )
+
+                self.cursor.execute(sql, values)
+                self.connection.commit()
+
+                if self.cursor.rowcount == 0:
+                    return False, 'No librarian found with that ID or no changes made'
+
+                return True, 'User details updated successfully'
+
+            except Exception as e:
+                self.connection.rollback()
+                print(f"Error updating librarian details: {str(e)}")
+
+                # Handle duplicate email/phone errors
+                if "Duplicate entry" in str(e) and "email" in str(e):
+                    return False, 'Email is already in use by another user'
+                if "Duplicate entry" in str(e) and "phone" in str(e):
+                    return False, 'Phone number is already in use by another user'
+
+                return False, f'Database error: {str(e)}'
 
 # ===================== CONNECTION FACTORY ===================== #
 

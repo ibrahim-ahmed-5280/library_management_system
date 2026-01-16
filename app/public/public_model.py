@@ -34,12 +34,37 @@ class PublicDatabase:
 
 class PublicModel:
     def __init__(self, connection):
-        try:
-            self.connection = connection
-            self.cursor = connection.cursor()
-        except Exception as err:
-            print('Something went wrong! Internet connection or database connection. (public DB)')
-            print(f'Error: {err}')
+        self.connection = connection
+        self.cursor = connection.cursor(dictionary=True)
+
+    def fetch_one(self, query, params=()):
+            self.cursor.execute(query, params)
+            return self.cursor.fetchone()
+
+    def fetch_all(self, query, params=()):
+            self.cursor.execute(query, params)
+            return self.cursor.fetchall()
+
+    def total_members(self):
+        row = self.fetch_one("""
+                             SELECT COUNT(*) AS total
+                             FROM users
+                             WHERE role = 'member'
+                             """)
+        return row['total'] if row else 0
+
+    def total_books(self):
+        row = self.fetch_one("SELECT COUNT(*) AS total FROM books")
+        return row['total'] if row else 0
+
+    def total_copies(self):
+        row = self.fetch_one("SELECT COUNT(*) AS total FROM book_copies")
+        return row['total'] if row else 0
+
+    def total_categories(self):
+        row = self.fetch_one("SELECT COUNT(*) AS total FROM categories")
+        return row['total'] if row else 0
+
 
 
 public_db_configuration = DbConfiguration()
@@ -49,7 +74,7 @@ def check_public_model_connection():
     try:
         mysql_connect = PublicDatabase(
             host=public_db_configuration.DB_HOSTNAME,
-            port=3306,
+            port=3307,
             user=public_db_configuration.DB_USERNAME,
             password=public_db_configuration.DB_PASSWORD,
             database=public_db_configuration.DB_NAME

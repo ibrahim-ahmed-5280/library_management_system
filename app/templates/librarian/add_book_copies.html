@@ -1,4 +1,4 @@
-{% extends "admin/admin_base.html" %}
+{% extends "librarian/admin_base.html" %}
 
 {% block title %}Add Book Copies | LMS{% endblock %}
 
@@ -35,38 +35,38 @@
                 </div>
                 <form id="copiesForm" novalidate>
 
-                    <div class="alert alert-success" id="copies_succ_msg" style="display:none;"></div>
-                    <div class="alert alert-danger" id="copies_error_msg" style="display:none;"></div>
+                    <div class="alert alert-success d-none" id="copies_succ_msg"></div>
+                    <div class="alert alert-danger d-none" id="copies_error_msg"></div>
 
                     <div class="row">
 
                         <!-- Edition -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Edition</label>
-                                <select name="edition_id" class="form-control">
-                                    <option value="">Select Edition</option>
-                                    {% for book in books %}
-                                    {%for edition in editions%}
-                                    {%if book.book_id == edition.book_id%}
-                                    <option value="{{ edition.edition_id }}">
-                                        {{ edition.edition_number }} - {{ book.title }}
-                                    </option>
-                                    {%endif%}
-                                    {%endfor%}
-                                    {% endfor %}
-                                </select>
-                                <div id="edition_id_error" class="invalid-feedback"></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Edition</label>
+                            <select name="edition_id" class="form-select" required>
+                                <option value="">Select Edition</option>
+                                {% for book in books %}
+                                {% for edition in editions %}
+                                {% if book.book_id == edition.book_id %}
+                                <option value="{{ edition.edition_id }}">
+                                    {{ edition.edition_number }} - {{ book.title }}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select an edition.
                             </div>
                         </div>
 
                         <!-- Copies -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Number of Copies</label>
-                                <input type="number" name="copies_count" class="form-control"
-                                    placeholder="Enter copies count">
-                                <div id="copies_count_error" class="invalid-feedback"></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Number of Copies</label>
+                            <input type="number" name="copies_count" class="form-control"
+                                placeholder="Enter copies count" required min="1">
+                            <div class="invalid-feedback">
+                                Minimum 1 copy is required.
                             </div>
                         </div>
 
@@ -80,6 +80,7 @@
                     </div>
 
                 </form>
+
             </div>
         </div>
     </div>

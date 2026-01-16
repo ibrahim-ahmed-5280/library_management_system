@@ -60,7 +60,7 @@
         <div class="leftside-menu">
 
             <!-- LOGO -->
-            <a href="{{url_for('dashboard_page_admin')}}" class="logo text-center logo-light">
+            <a href="{{url_for('dashboard_member')}}" class="logo text-center logo-light">
                 <span class="logo-lg">
                     <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/images/logo.png" alt=""
                         height="16">
@@ -72,7 +72,7 @@
             </a>
 
             <!-- LOGO -->
-            <a href="{{url_for('dashboard_page_admin')}}" class="logo text-center logo-dark">
+            <a href="{{url_for('dashboard_member')}}" class="logo text-center logo-dark">
                 <span class="logo-lg">
                     <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/images/logo-dark.png"
                         alt="" height="16">
@@ -87,93 +87,68 @@
 
                 <!--- Sidemenu -->
                 <ul class="side-nav">
-
-                    <li class="side-nav-title side-nav-item">Admin</li>
-
+                    <li class="side-nav-title side-nav-item">Member</li>
                     <li class="side-nav-item">
-                        <a href="{{url_for('dashboard_page_admin')}}" class="side-nav-link">
+                        <a href="{{url_for('dashboard_member')}}" class="side-nav-link">
                             <i class="uil-home-alt"></i>
                             <span> Dashboard </span>
                         </a>
                     </li>
-                    <!-- manage users pages -->
                     <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarManageUsers" aria-expanded="false"
-                            aria-controls="sidebarManageUsers" class="side-nav-link">
-                            <i class="uil-user"></i>
-                            <span> Manage Users </span>
-                            <span class="menu-arrow"></span>
+                        <a href="{{ url_for('search_books') }}" class="side-nav-link">
+                            <i class="uil-search"></i>
+                            <span> Search Books </span>
                         </a>
-                        <div class="collapse" id="sidebarManageUsers">
-                            <ul class="side-nav-second-level">
-                                <!-- <li>
-                                    <a href="{{url_for('manage_admins_page')}}">Manage Admins</a>
-                                </li> -->
-                                <li>
-                                    <a href="{{url_for('manage_librarians_page')}}">Manage Librarians</a>
-                                </li>
-                                <li>
-                                    <a href="{{url_for('manage_members_page')}}">Manage Members</a>
-                                </li>
-
-                            </ul>
-                        </div>
-                    </li>
-                    <!-- add users pages -->
-                    <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarAddUsers" aria-expanded="false"
-                            aria-controls="sidebarAddUsers" class="side-nav-link">
-                            <i class="uil-user-plus"></i>
-                            <span> Add Users </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse" id="sidebarAddUsers">
-                            <ul class="side-nav-second-level">
-                                <li>
-                                    <a href="{{url_for('add_admin_page')}}">Add Admin</a>
-                                </li>
-                                <li>
-                                    <a href="{{url_for('add_librarian_page')}}">Add Librarian</a>
-                                </li>
-                                <li>
-                                    <a href="{{url_for('add_member_page')}}">Add Member</a>
-                                </li>
-
-                            </ul>
-                        </div>
                     </li>
 
                     <li class="side-nav-item">
-                        <a data-bs-toggle="collapse" href="#sidebarSetting" aria-expanded="false"
-                            aria-controls="sidebarSetting" class="side-nav-link">
-                            <i class="uil-cog"></i>
-                            <span> Manage policy </span>
-                            <span class="menu-arrow"></span>
-                        </a>
-                        <div class="collapse" id="sidebarSetting">
-                            <ul class="side-nav-second-level">
-                                <li>
-                                    <a href="{{url_for('add_policy_page')}}">Add Policy</a>
-                                </li>
-                                <li>
-                                    <a href="{{url_for('manage_policy_page')}}">Manage Policy</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="side-nav-item">
-                        <a href="{{url_for('admin_reports')}}" class="side-nav-link">
-                            <i class="uil uil-chart-line"></i>
-                            <span> Reports </span>
+                        <a href="{{ url_for('view_books') }}" class="side-nav-link">
+                            <i class="uil-books"></i>
+                            <span> View Books </span>
                         </a>
                     </li>
                     <li class="side-nav-item">
-                        <a href="{{url_for('logout_admin')}}" class="side-nav-link">
+                        <a href="{{ url_for('member_requests') }}" class="side-nav-link">
+                            <i class="uil-clipboard-notes"></i>
+                            <span>My Requests</span>
+                        </a>
+                    </li>
+
+
+                    <li class="side-nav-item">
+                        <a href="{{ url_for('borrowed_books') }}" class="side-nav-link">
+                            <i class="uil-book-open"></i>
+                            <span> Borrowed Books </span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="{{ url_for('borrowed_history') }}" class="side-nav-link">
+                            <i class="uil-history"></i>
+                            <span> Borrowed History </span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="{{ url_for('in_library_reading_view') }}" class="side-nav-link">
+                            <i class="uil-book-reader"></i>
+                            <span> In-Library Reading </span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="{{ url_for('fines_or_payment') }}" class="side-nav-link">
+                            <i class="uil-money-bill"></i>
+                            <span> Fines & Payments </span>
+                        </a>
+                    </li>
+
+                    <li class="side-nav-item">
+                        <a href="{{url_for('logout')}}" class="side-nav-link">
                             <i class="uil uil-sign-out-alt"></i>
                             <span> Logout </span>
                         </a>
                     </li>
-
 
                 </ul>
 
@@ -207,7 +182,7 @@
                             </div>
                         </li> -->
 
-                        <!-- <li class="dropdown notification-list">
+                        <li class="dropdown notification-list">
                             <a class="nav-link dropdown-toggle arrow-none" data-bs-toggle="dropdown" href="#"
                                 role="button" aria-haspopup="false" aria-expanded="false">
                                 <i class="dripicons-bell noti-icon"></i>
@@ -226,7 +201,7 @@
                                 </div>
 
                                 <div style="max-height: 230px;" data-simplebar>
-                               
+
                                     <a href="javascript:void(0);" class="dropdown-item notify-item">
                                         <div class="notify-icon bg-primary">
                                             <i class="mdi mdi-comment-account-outline"></i>
@@ -236,7 +211,7 @@
                                         </p>
                                     </a>
 
-                                    
+
                                     <a href="javascript:void(0);" class="dropdown-item notify-item">
                                         <div class="notify-icon bg-info">
                                             <i class="mdi mdi-account-plus"></i>
@@ -246,7 +221,7 @@
                                         </p>
                                     </a>
 
-                                    
+
                                     <a href="javascript:void(0);" class="dropdown-item notify-item">
                                         <div class="notify-icon">
                                             <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/images/users/avatar-2.jpg"
@@ -258,7 +233,7 @@
                                         </p>
                                     </a>
 
-                                   
+
                                     <a href="javascript:void(0);" class="dropdown-item notify-item">
                                         <div class="notify-icon bg-primary">
                                             <i class="mdi mdi-comment-account-outline"></i>
@@ -268,7 +243,7 @@
                                         </p>
                                     </a>
 
-                                 
+
                                     <a href="javascript:void(0);" class="dropdown-item notify-item">
                                         <div class="notify-icon">
                                             <img src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/images/users/avatar-4.jpg"
@@ -280,7 +255,7 @@
                                         </p>
                                     </a>
 
-                                    
+
                                     <a href="javascript:void(0);" class="dropdown-item notify-item">
                                         <div class="notify-icon bg-info">
                                             <i class="mdi mdi-heart"></i>
@@ -292,14 +267,14 @@
                                     </a>
                                 </div>
 
-                               
+
                                 <a href="javascript:void(0);"
                                     class="dropdown-item text-center text-primary notify-item notify-all">
                                     View All
                                 </a>
 
                             </div>
-                        </li> -->
+                        </li>
 
                         <li class="notification-list">
                             <a class="nav-link end-bar-toggle" href="javascript: void(0);">
@@ -314,14 +289,14 @@
                                     style="width: 30px; height: 30px;">
                                     <span class="text-white d-flex justify-content-center" style="margin-top: 4px;">
 
-                                        {{ admin.name.split()[0][0] ~ admin.name.split()[1][0] }}
+                                        {{ member.name.split()[0][0] ~ member.name.split()[1][0] }}
 
                                     </span>
                                 </span>
                                 <span>
-                                    <span class="account-user-name text-capitalize">{{ admin.name.split()[:2] | join('
+                                    <span class="account-user-name text-capitalize">{{ member.name.split()[:2] | join('
                                         ') }}</span>
-                                    <span class="account-position text-capitalize">{{admin.role}}</span>
+                                    <span class="account-position text-capitalize">{{member.role}}</span>
 
                                 </span>
                             </a>
@@ -332,11 +307,8 @@
                                     <h6 class="text-overflow m-0">Welcome !</h6>
                                 </div>
 
-
-
-
                                 <!-- item-->
-                                <a href="{{url_for('profile_admin')}}" class="dropdown-item notify-item">
+                                <a href="{{url_for('profile_member')}}" class="dropdown-item notify-item">
                                     <i class="mdi mdi-account-circle me-1"></i>
                                     <span>My Account</span>
                                 </a>
@@ -345,12 +317,10 @@
                                     <i class="mdi mdi-account-edit me-1"></i>
                                     <span>Change Password</span>
                                 </a>
-                                <!-- item-->
-                                <a href="{{url_for('logout_admin')}}" class="dropdown-item notify-item">
+                                <a href="{{url_for('logout')}}" class="dropdown-item notify-item">
                                     <i class="mdi mdi-logout me-1"></i>
                                     <span>Logout</span>
                                 </a>
-
                             </div>
                         </li>
 
@@ -571,49 +541,55 @@
                     <!-- Form with spinner and alerts -->
                     <!-- Form with spinner inside the button -->
                     <form id="changePasswordForm">
-    <div class="alert alert-danger d-none" id="passwordError"></div>
-    <div class="alert alert-success d-none" id="passwordSuccess"></div>
+                        <div class="alert alert-danger d-none" id="passwordError"></div>
+                        <div class="alert alert-success d-none" id="passwordSuccess"></div>
 
-    <input type="hidden" id="admin_id" value="{{admin.user_id}}">
+                        <input type="hidden" id="member_id" value="{{member.user_id}}">
 
-    <div class="mb-3">
-        <label class="form-label">Current Password</label>
-        <div class="input-group">
-            <input type="password" class="form-control" id="oldPassword">
-            <button class="btn btn-light" type="button" onclick="togglePasswordVisibility('oldPassword', this)">
-                <i class="fa-solid fa-eye-slash"></i>
-            </button>
-        </div>
-        <div id="oldPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
-    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="oldPassword">
+                                <button class="btn btn-light" type="button"
+                                    onclick="togglePasswordVisibility('oldPassword', this)">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                            <div id="oldPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;">
+                            </div>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label">New Password</label>
-        <div class="input-group">
-            <input type="password" class="form-control" id="newPassword">
-            <button class="btn btn-light" type="button" onclick="togglePasswordVisibility('newPassword', this)">
-                <i class="fa-solid fa-eye-slash"></i>
-            </button>
-        </div>
-        <div id="newPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
-    </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="newPassword">
+                                <button class="btn btn-light" type="button"
+                                    onclick="togglePasswordVisibility('newPassword', this)">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                            <div id="newPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;">
+                            </div>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Confirm New Password</label>
-        <div class="input-group">
-            <input type="password" class="form-control" id="confirmPassword">
-            <button class="btn btn-light" type="button" onclick="togglePasswordVisibility('confirmPassword', this)">
-                <i class="fa-solid fa-eye-slash"></i>
-            </button>
-        </div>
-        <div id="confirmPasswordFeedback" style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
-    </div>
-</form>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmPassword">
+                                <button class="btn btn-light" type="button"
+                                    onclick="togglePasswordVisibility('confirmPassword', this)">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                            <div id="confirmPasswordFeedback"
+                                style="display:none; font-size: 0.875em; margin-top: 5px;"></div>
+                        </div>
+                    </form>
 
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="changePasswordBtn"
-                        onclick="submit_password_admin()">
+                        onclick="submit_password_member()">
                         <span id="spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"
                             aria-hidden="true"></span>
                         <span id="btnText">Change Password</span>
@@ -630,7 +606,7 @@
     <!-- bundle -->
     <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/vendor.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/app.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/checking modes.js"></script>
     <!-- third party js -->
     <script
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/vendor/apexcharts.min.js"></script>
@@ -645,7 +621,7 @@
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/pages/demo.dashboard.js"></script>
     <!-- end demo js-->
 
-    <script src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/checking modes.js"></script>
+
     <!-- datatable party js -->
     <script
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/vendor/jquery.dataTables.min.js"></script>
@@ -676,7 +652,7 @@
         src="https://cdn.jsdelivr.net/gh/ibrahim-ahmed-5280/template-cdns/asset/js/pages/demo.datatable-init.js"></script>
     <!-- datatable end demo js-->
 
-    <script src="{{url_for('static', filename='js/admin/admin_password_change.js')}}"></script>
+    <script src="{{url_for('static', filename='js/member/member_password_change.js')}}"></script>
 
 
 </body>
