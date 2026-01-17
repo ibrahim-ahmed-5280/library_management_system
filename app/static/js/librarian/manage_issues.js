@@ -87,6 +87,9 @@ function insert_issue() {
             if (data.success) {
                 successMsg.innerText = data.message;
                 successMsg.classList.remove('d-none');
+                setTimeout(function () {
+                    location.reload();
+                }, 1000); // <-- Set your desired delay here
                 document.getElementById('newIssueForm').reset();
             } else {
                 errorMsg.innerText = data.message;
@@ -192,6 +195,9 @@ function update_issue(issueId) {
             if (data.success) {
                 successMsg.innerText = data.message;
                 successMsg.classList.remove('d-none');
+                setTimeout(function () {
+                    location.reload();
+                }, 1000); // <-- Set your desired delay herem/mvc
                 // Optionally, update the UI table row with new values
             } else {
                 errorMsg.innerText = data.message;

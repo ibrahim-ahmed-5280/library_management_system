@@ -52,18 +52,41 @@ def login():
 def dashboard_member():
     email = get_member_session()
     if not email:
-        return login()
+        return redirect(url_for('login')) # Assuming login is a named route
 
     connect_status, member_model = check_member_model_connection()
     if not connect_status:
         return jsonify({"error": "Database connection failed."})
 
-    # 🔹 Read dashboard statistics
+    # Get member_id from session
+    member_id = session.get('member_id')
 
+    # 🔹 Read dashboard statistics
+    # Each call returns (success_boolean, value)
+    _, total_borrowed    = member_model.get_total_borrowed_count(member_id)
+    _, currently_borrowed = member_model.get_currently_borrowed_count(member_id)
+    _, available_books   = member_model.get_available_books_count()
+    _, overdue_books     = member_model.get_overdue_count(member_id)
+    _, reserved_books    = member_model.get_reserved_count(member_id)
+    _, in_library        = member_model.get_active_reading_sessions_count(member_id)
+    _, total_hours       = member_model.get_total_reading_hours(member_id)
+    _, monthly_hours     = member_model.get_monthly_reading_hours(member_id)
+
+    # Organise data into a dictionary for the template
+    member_stats = {
+        "total_borrowed": total_borrowed,
+        "currently_borrowed": currently_borrowed,
+        "available_books": available_books,
+        "overdue_books": overdue_books,
+        "reserved_books": reserved_books,
+        "in_library": in_library,
+        "total_hours": total_hours,
+        "monthly_hours": monthly_hours
+    }
 
     return render_template(
         'member/dashboard.html',
-        member_stats=[]
+        member_stats=member_stats
     )
 
 # Profile admin page
@@ -245,9 +268,11 @@ def member_request_borrow(edition_id):
     if flag:
         flash("This book is already borrowed or requested.", "danger")
         return redirect(url_for('search_books'))
-
+    _,message = member_model.has_reached_limit(session.get('member_id'), 'borrow')
+    if _:
+        flash(message, "danger")
+        return redirect(url_for('search_books'))
     result = member_model.create_borrow_request(session.get('member_id'), edition_id)
-
     if result is True:
         flash("Request submitted successfully!", "success")
         return redirect(url_for('member_requests'))

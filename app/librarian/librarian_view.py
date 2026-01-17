@@ -213,7 +213,7 @@ def borrow_requests_page():
     borrow_requests = get_requests_by_type('borrow')
     return render_template('librarian/borrow_requests.html', requests=borrow_requests, request_type='borrow')
 
-@app.route('/requests/return')
+@app.route('/requests/reserve')
 def reverse_requests_page():
     email = get_librarian_session()
     if not email:
@@ -455,13 +455,9 @@ def add_edition():
         publisher=publisher or None,
         publication_year=publication_year or None
     )
-    last_book = librarian_model.read_last_book(book_id)
     return jsonify({
         "success": True,
-        "message": "Edition added successfully.",
-        "edition_id": edition_id,
-        "edition_number": edition_number,
-        "title": last_book,
+        "message": "Edition added successfully."
     })
 
 @app.route('/book_copies/add', methods=['POST'])
@@ -545,20 +541,43 @@ def insert_issue():
     if not connection_status:
         return jsonify("Database connection failed")
 
-    # Check available copy
+    # 1. Check if member is already holding/requesting this edition
+    has_it, reason = librarian_modal.is_member_holding_edition(member_id, edition_id)
+
+    if has_it:
+        if reason == "borrowed":
+            msg = "Member already has a copy of this book in their possession."
+        elif reason == "reserved":
+            msg = "Member already has an active (pending/approved) request for this book."
+        else:
+            msg = "Database error verifying member status."
+
+        return jsonify(success=False, message=msg)
+
+    # 2. Try to get an available copy
     copy = librarian_modal.get_available_copy(edition_id)
 
     if copy:
-        if librarian_modal.is_member_borrowed(copy.get('copy_id'), member_id):
-            return jsonify(success=False, message="Member al ready borrowed this book.")
-        if librarian_modal.is_member_borrow_limit_reached(member_id):
-            return jsonify(success=False, message="Member al ready borrowed his limit of borrowed.")
+            # --- ISSUE LOGIC ---
+            reached_borrow, msg = librarian_modal.has_reached_limits(member_id, 'borrow')
+            if reached_borrow:
+                return jsonify(success=False, message=msg)
 
-        librarian_modal.create_issue(copy['copy_id'], member_id, due_date,session['librarian_id'])
-        return jsonify({"success": True, "message": "Book issued successfully."})
-        librarian_modal.update_status(copy['copy_id'], 'borrowed')
+            request_id = librarian_modal.create_borrowed_request(member_id, edition_id,session.get('librarian_id'))
+            librarian_modal.create_issue(copy['copy_id'], member_id, due_date, request_id, session['librarian_id'])
+            return jsonify(success=True, message="No reservation needed. Book issued immediately.")
+
     else:
-        return jsonify({"success": False, "message": "No available copy."})
+            # --- RESERVE LOGIC (No copy available) ---
+            reached_reserve, msg = librarian_modal.has_reached_limits(member_id, 'reserve')
+            if reached_reserve:
+                return jsonify(success=False, message="No copies available AND " + msg)
+
+            success = librarian_modal.create_reservation(member_id, edition_id,session.get('librarian_id'))
+            if success:
+                return jsonify(success=True, message="No copies available. Book has been Reserved for the member.")
+            else:
+                return jsonify(success=False, message="Failed to create reservation.")
 
 #========================================================#
 #============== UPDATE DATA =============================#
@@ -622,18 +641,10 @@ def update_book():
     if not updated:
         return jsonify(success=False, message="You have not make any changes.")
 
-    # Return updated names for JS table refresh
-    author_name = data.get('author_name')
-    category_name = book_model.get_category_name(category_id)
 
-    print("Halkan la yimid")
     return jsonify({
         "success": True,
         "message": "Book updated successfully.",
-        "book_id": book_id,
-        "title": title,
-        "author_name": author_name,
-        "category_name": category_name
     })
 
 @app.route('/editions/update', methods=['POST'])
@@ -746,68 +757,71 @@ def update_copy_status_route():
     # ---------------- SUCCESS RESPONSE ----------------
     return jsonify(success=True, message="Copy status updated successfully.", copy_id=copy_id, status=status)
 
+
 @app.route('/issue_books/update', methods=['POST'])
 def update_issue():
     data = request.get_json()
-    print(f"Data received for update: {data}")
-
     issue_id = data.get('issue_id')
     member_id = data.get('member_id')
     edition_id = data.get('edition_id')
     due_date_str = data.get('due_date')
 
-    # Basic validation
-    if not issue_id or not member_id or not edition_id or not due_date_str:
+    # 1. Basic & Date Validation (Keep your existing code here)
+    if not all([issue_id, member_id, edition_id, due_date_str]):
         return jsonify(success=False, message="All fields are required"), 400
 
-    # Date validation
     try:
         due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+        if due_date <= date.today():
+            return jsonify(success=False, message="Due date must be greater than today"), 400
     except ValueError:
-        return jsonify(success=False, message="Invalid due date format"), 400
+        return jsonify(success=False, message="Invalid date format"), 400
 
-    if due_date <= date.today():
-        return jsonify(success=False, message="Due date must be greater than today"), 400
-
-    # Check DB connection
     connection_status, librarian_modal = check_librarian_model_connection()
     if not connection_status:
         return jsonify(success=False, message="Database connection failed"), 500
 
-    # Get current issue details
+    # 2. Get Current Data
     current_issue = librarian_modal.get_issue(issue_id)
     if not current_issue:
-        return jsonify(success=False, message="Issue not found"), 404
+        return jsonify(success=False, message="Issue record not found"), 404
 
-    current_edition_id = current_issue['edition_id']
-    current_copy_id = current_issue['copy_id']
+    # 3. LOGIC: If Edition or Member has changed, perform possession check
+    # We ignore the check if it's the SAME person and SAME book (just updating due date)
+    if str(edition_id) != str(current_issue['edition_id']) or str(member_id) != str(current_issue['member_id']):
+        has_it, reason = librarian_modal.is_member_holding_edition(member_id, edition_id)
+        if has_it:
+            return jsonify(success=False, message=f"Member cannot switch to this book: already {reason}.")
 
-    # If edition is changed
-    if str(edition_id) != str(current_edition_id) and str(member_id) == str(current_issue['member_id']):
-        # Check available copy for new edition
-        copy = librarian_modal.get_available_copy(edition_id)
+    # 4. HANDLE EDITION CHANGE
+    if str(edition_id) != str(current_issue['edition_id']):
+        # Check if new edition is available
+        new_copy = librarian_modal.get_available_copy(edition_id)
 
-        if copy:
-            # Update issue with new copy and member
-            librarian_modal.update_issue(issue_id, member_id, due_date, copy['copy_id'])
-            # Update the request table if needed
-            #librarian_modal.update_request(current_issue.get('request_id'), member_id, edition_id)
-            # Update old copy status to available
-            librarian_modal.update_status(current_copy_id, 'available')
-            # Update new copy status to borrowed
-            librarian_modal.update_status(copy['copy_id'], 'borrowed')
-            return jsonify(success=True, message="Issue updated with new edition successfully.")
+        if new_copy:
+            # Check borrow limits for the member (since it's essentially a new borrow)
+            reached, msg = librarian_modal.has_reached_limits(member_id, 'borrow')
+            # Important: subtract 1 from reached check because they are giving one back?
+            # Or just proceed if it's a direct swap.
+
+            # TRANSACTION: Swap the books
+            # a) Set old copy to available
+            librarian_modal.update_status(current_issue['copy_id'], 'available')
+            # b) Set new copy to borrowed
+            librarian_modal.update_status(new_copy['copy_id'], 'borrowed')
+            # c) Update the issue record
+            librarian_modal.update_issue(issue_id, member_id, due_date, new_copy['copy_id'])
+
+            return jsonify(success=True, message="Book swapped and issue updated successfully.")
+
         else:
-            # No copy available: create reserved request
-            #librarian_modal.create_reserved_request(member_id, edition_id)
-            librarian_modal.update_status_issue(issue_id, "returned")
-            return jsonify(success=False, message="No available copy for the selected edition.")
-    else:
-        #if librarian_modal.is_reserved(current_issue.get('request_id'),edition_id, member_id):
-            #return jsonify(success=False, message="Member borrowed already this book.")
+            # NO COPY AVAILABLE: Do you want to convert the current issue to a reservation?
+            # Recommendation: Don't update the issue, tell the librarian to return the old one first.
+            return jsonify(success=False, message="New edition not available. Cannot update.")
 
-        # Edition not changed, just update member and due date
-        librarian_modal.update_issue(issue_id, member_id, due_date, current_copy_id)
+    else:
+        # 5. SIMPLE UPDATE (Just Member or Due Date)
+        librarian_modal.update_issue(issue_id, member_id, due_date, current_issue['copy_id'])
         return jsonify(success=True, message="Issue updated successfully.")
 
 @app.route('/return_issue/update', methods=['POST'])
@@ -830,6 +844,73 @@ def update_return_issue():
         return jsonify(success=True, message="Issue updated with new status successfully.")
     return jsonify({"success": False, "message": "Issue not updated successfully."})
 
+@app.route('/librarian/approve_borrow_requests', methods=['POST'])
+def approve_borrow_requests():
+    email = get_librarian_session()
+    if not email:
+        return redirect(url_for('login')) # Use redirect for login too
+    data = request.get_json()
+    request_id = data.get('request_id')
+    status = data.get('status')
+    member_id = data.get('member_id')
+    due_date_str = data.get('due_date')
+    edition_id = data.get('edition_id')
+
+    try:
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+        if due_date <= date.today():
+            return jsonify(success=False, message="Due date must be greater than today"), 400
+    except ValueError:
+        return jsonify(success=False, message="Invalid date format"), 400
+
+    connect_status, librarian_model = check_librarian_model_connection()
+    if not connect_status:
+        return jsonify(success=False, message="Database connection failed"), 500
+    reached_borrow, msg = librarian_model.has_reached_limits(member_id, 'borrow')
+    if reached_borrow:
+        return jsonify(success=False, message="Reached limits"), 400
+    flag = librarian_model.update_request_status(request_id, status)
+    if flag:
+        copy = librarian_model.get_available_copy(edition_id)
+        librarian_model.create_issue(copy['copy_id'], member_id, due_date, request_id, session['librarian_id'])
+        return jsonify(success=True, message="Issue updated with new status successfully.")
+    else:
+        return jsonify(success=False, message="Request status not updated."), 400
+
+
+@app.route('/librarian/approve_reserve_requests', methods=['POST'])
+def approve_reserve_requests():
+    email = get_librarian_session()
+    if not email:
+        return redirect(url_for('login'))  # Use redirect for login too
+
+    data = request.get_json()
+    request_id = data.get('request_id')
+    status = data.get('status')
+    due_date_str = data.get('due_date')
+    member_id = data.get('member_id')
+
+    try:
+        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+        if due_date <= date.today():
+            return jsonify(success=False, message="Due date must be greater than today"), 400
+    except ValueError:
+        return jsonify(success=False, message="Invalid date format"), 400
+
+    connect_status, librarian_model = check_librarian_model_connection()
+    if not connect_status:
+        return jsonify(success=False, message="Database connection failed"), 500
+    reached_borrow, msg = librarian_model.has_reached_limits(member_id, 'borrow')
+    if reached_borrow:
+        return jsonify(success=False, message="Borrow limit reached successfully."), 400
+
+    flag = librarian_model.update_request_status(request_id, status)
+    if flag:
+        copy = librarian_model.get_available_copy(edition_id)
+        librarian_model.create_issue(copy['copy_id'], member_id, due_date, request_id, session['librarian_id'])
+        return jsonify(success=True, message="Request approved successfully."), 200
+    else:
+        return jsonify(success=False, message="Request failed. Please try again."), 500
 
 @app.route('/change_password_librarian', methods=['POST'])
 def change_password_librarian():

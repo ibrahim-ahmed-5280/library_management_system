@@ -51,8 +51,6 @@
                                 <span class="badge 
                                     {% if req.status == 'pending' %}bg-warning
                                     {% elif req.status == 'approved' %}bg-success
-                                    {% elif req.status == 'rejected' %}bg-danger
-                                    {% elif req.status == 'reserved' %}bg-info
                                     {% elif req.status == 'completed' %}bg-secondary
                                     {% elif req.status == 'cancelled' %}bg-dark
                                     {% endif %}">
@@ -61,10 +59,16 @@
                             </td>
                             <td>{{ req.request_date }}</td>
                             <td>
-                                <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                   data-bs-target="#updateRequestModal{{ req.request_id }}">
-                                   Update
+                                {% if req.available_copies > 0 %}
+                                <a href="#updateRequestModal{{req.request_id}}" class="action-icon"
+                                    data-bs-toggle="modal">
+                                    <i class="mdi mdi-dots-vertical"></i>
                                 </a>
+                                {%else%}
+                                <a href="#" class="action-icon" data-bs-toggle="dropdown">
+                                    <i class="uil uil-lock text-white"></i>Update
+                                </a>
+                                {%endif%}
                             </td>
                         </tr>
 
@@ -79,30 +83,35 @@
                                     <div class="modal-body">
                                         <form id="request_form{{ req.request_id }}" novalidate>
 
-                                            <div class="alert alert-success d-none" id="req_succ_msg{{ req.request_id }}"></div>
-                                            <div class="alert alert-danger d-none" id="req_err_msg{{ req.request_id }}"></div>
-
-                                            <div class="mb-3">
-                                                <label class="form-label">Status</label>
-                                                <select class="form-control" id="req_status{{ req.request_id }}">
-                                                    {% for st in ['pending','approved','rejected','reserved','completed','cancelled'] %}
-                                                    <option value="{{ st }}" {% if st==req.status %}selected{% endif %}>
-                                                        {{ st|capitalize }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                                <div class="invalid-feedback" id="req_status_error{{ req.request_id }}"></div>
+                                            <div class="alert alert-success d-none"
+                                                id="req_succ_msg{{ req.request_id }}"></div>
+                                            <div class="alert alert-danger d-none" id="req_err_msg{{ req.request_id }}">
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Status</label>
+                                                    <input class="form-control" type="text"
+                                                        name="req_status{{ req.request_id }}"
+                                                        id="req_status{{ req.request_id }}" value="approved"
+                                                        readonly>
+                                                    <div class="invalid-feedback"
+                                                        id="req_status_error{{ req.request_id }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Due Date</label>
+                                                    <input type="date" class="form-control"
+                                                        id="due_date{{req.request_id}}">
+                                                    <div class="invalid-feedback" id="due_date_error{{req.request_id}}">
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Note</label>
-                                                <textarea class="form-control" id="req_note{{ req.request_id }}" placeholder="Optional note">{{ req.note or '' }}</textarea>
-                                            </div>
 
                                             <div class="d-flex justify-content-end">
-                                                <button type="button" class="btn btn-primary"
-                                                        onclick="update_request_status('{{ req.request_id }}')">
-                                                    Update
+                                                <button class="btn btn-primary"
+                                                    onclick="update_request_status('{{ req.request_id }}','{{req.member_id}}')">
+                                                    Update status
                                                 </button>
                                             </div>
 

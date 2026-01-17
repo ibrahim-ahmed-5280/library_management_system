@@ -148,7 +148,18 @@ class LibrarianModel:
         self.connection.commit()  # 🔴 THIS WAS MISSING
         return self.cursor.rowcount
 
-
+    # Check if another book exists for update (exclude current book_id)
+    def book_exists_update(self, title, author_id, category_id, book_id):
+            query = """
+                    SELECT 1 \
+                    FROM books
+                    WHERE title = %s \
+                      AND author_id = %s \
+                      AND category_id = %s \
+                      AND book_id != %s
+                        LIMIT 1 \
+                    """
+            return bool(self.fetch_one(query, (title, author_id, category_id, book_id)))
 
     #================ Editions ====================#
     def insert_edition(self, book_id, edition_number, publisher, publication_year):
@@ -191,6 +202,15 @@ class LibrarianModel:
                 ORDER BY e.created_at DESC \
                 """
         return self.fetch_all(query)
+
+    def edition_exists(self, book_id, edition_number):
+        query = """
+            SELECT edition_id
+            FROM editions
+            WHERE book_id = %s AND edition_number = %s
+            LIMIT 1
+        """
+        return self.fetch_one(query, (book_id, edition_number))
 
     def edition_exists_update(self, edition_number, edition_id):
         query = """
@@ -275,47 +295,42 @@ class LibrarianModel:
 
     #=========== requests ==========================#
     def get_requests_by_type(self, request_type):
-            self.cursor.execute("""
-                                SELECT r.request_id,
-                                       r.member_id,
-                                       r.edition_id,
-                                       r.request_type,
-                                       r.status,
-                                       r.initiated_by,
-                                       r.request_date,
-                                       r.decision_date,
-                                       r.librarian_id,
-                                       r.note,
-                                       u.name  AS member_name,
-                                       b.title AS book_title,
-                                       e.edition_number
-                                FROM requests r
-                                         JOIN users u ON r.member_id = u.user_id
-                                         JOIN editions e ON r.edition_id = e.edition_id
-                                         JOIN books b ON e.book_id = b.book_id
-                                WHERE r.request_type = %s
-                                ORDER BY r.request_date DESC
-                                """, (request_type,))
-            return self.cursor.fetchall()
+        query = """
+                SELECT r.request_id,
+                       r.member_id,
+                       r.edition_id,
+                       r.request_type,
+                       r.status,
+                       r.initiated_by,
+                       r.request_date,
+                       r.decision_date,
+                       r.librarian_id,
+                       r.note,
+                       u.name                          AS member_name,
+                       b.title                         AS book_title,
+                       e.edition_number,
+                       (SELECT COUNT(*)
+                        FROM book_copies bc
+                        WHERE bc.edition_id = r.edition_id
+                          AND bc.status = 'available') AS available_copies
+                FROM requests r
+                         JOIN users u ON r.member_id = u.user_id
+                         JOIN editions e ON r.edition_id = e.edition_id
+                         JOIN books b ON e.book_id = b.book_id
+                WHERE r.request_type = %s AND r.status = 'pending'
+                ORDER BY r.request_date DESC \
+                """
+        # Use your existing fetch_all helper
+        return self.fetch_all(query, (request_type,))
 
-    def update_request(self, request_id, member_id, edition_id):
-            query = """
-                    UPDATE requests
-                    SET member_id=%s, \
-                        edition_id=%s, \
-                    WHERE request_id = %s \
-                    """
-            self.cursor.execute(query, (member_id, edition_id, request_id))
-            self.connection.commit()
-            return self.cursor.rowcount > 0
-
-    def update_request_status(self, request_id, status):
+    def update_request_status(self, request_id, status, request_type = 'borrow'):
         query = """
                 UPDATE requests
-                SET status = %s
+                SET request_type=%s, \
+                    status = %s\
                 WHERE request_id = %s \
                 """
-        self.cursor.execute(query, (status, request_id))
+        self.cursor.execute(query, (request_type,status, request_id))
         self.connection.commit()
         return self.cursor.rowcount > 0
 
@@ -358,11 +373,11 @@ class LibrarianModel:
             return self.cursor.fetchone()  # returns None if no copy available
 
     # Insert a new issue
-    def create_issue(self, copy_id, member_id, due_date,librarian_id=2):
+    def create_issue(self, copy_id, member_id, due_date,request_id ,librarian_id=2):
             self.cursor.execute("""
-                                INSERT INTO issues (copy_id, member_id, issue_date, due_date, status,librarian_id)
-                                VALUES (%s, %s, NOW(), %s, 'borrowed',%s)
-                                """, (copy_id, member_id, due_date,librarian_id))
+                                INSERT INTO issues (copy_id, member_id, issue_date, due_date, status,request_id,librarian_id)
+                                VALUES (%s, %s, NOW(), %s, 'borrowed',%s,%s)
+                                """, (copy_id, member_id, due_date,request_id,librarian_id))
             self.cursor.execute("""
                                 UPDATE book_copies
                                 SET status='borrowed'
@@ -371,55 +386,44 @@ class LibrarianModel:
             self.connection.commit()
 
     # Insert a reserved request
-    # def create_borrowed_request(self, member_id, edition_id):
-    #     self.cursor.execute("""
-    #                         INSERT INTO requests (member_id, edition_id, request_type, status, initiated_by,
-    #                                               request_date)
-    #                         VALUES (%s, %s, 'borrow', 'approved', 'librarian', NOW())
-    #                         """, (member_id, edition_id))
-    #
-    #     # Get the last inserted ID
-    #     request_id = self.cursor.lastrowid
-    #
-    #     self.connection.commit()
-    #     return request_id
+    def create_borrowed_request(self, member_id, edition_id,librarian_id):
+        self.cursor.execute("""
+                            INSERT INTO requests (member_id, edition_id, request_type, status, initiated_by,
+                                                  request_date,librarian_id)
+                            VALUES (%s, %s, 'borrow', 'approved', 'librarian', NOW(),%s)
+                            """, (member_id, edition_id,librarian_id))
 
-    # def create_reserved_request(self, member_id, edition_id):
-    #         self.cursor.execute("""
-    #                             INSERT INTO requests (member_id, edition_id, request_type, status, initiated_by,
-    #                                                   request_date)
-    #                             VALUES (%s, %s, 'borrow', 'reserved', 'librarian', NOW())
-    #                             """, (member_id, edition_id))
-    #         self.connection.commit()
+        # Get the last inserted ID
+        request_id = self.cursor.lastrowid
+
+        self.connection.commit()
+        return request_id
+
+    def create_reservation(self, member_id, edition_id, librarian_id):
+        try:
+            self.cursor.execute("""
+                                INSERT INTO requests (member_id, edition_id, request_type, status, initiated_by,
+                                                      request_date, librarian_id)
+                                VALUES (%s, %s, 'reserve', 'pending', 'librarian', NOW(), %s)
+                                """, (member_id, edition_id, librarian_id))
+            self.connection.commit()
+            return True  # Add this to tell the route it was successful
+        except Exception as e:
+            print(f"Error: {e}")
+            self.connection.rollback()
+            return False  # Add this to tell the route it failed
+
+    def update_issue(self, issue_id, member_id, due_date, copy_id):
+        query = """
+                UPDATE issues
+                SET member_id = %s, \
+                    due_date  = %s, \
+                    copy_id   = %s
+                WHERE issue_id = %s \
+                """
+        return self.cursor.execute(query, (member_id, due_date, copy_id, issue_id))
 
     #================== helpers =====================#
-    # Get category name by id
-    def get_category_name(self, category_id):
-        row = self.fetch_one("SELECT name FROM categories WHERE category_id=%s", (category_id,))
-        return row["name"] if row else None
-
-    # Check if another book exists for update (exclude current book_id)
-    def book_exists_update(self, title, author_id, category_id, book_id):
-            query = """
-                    SELECT 1 \
-                    FROM books
-                    WHERE title = %s \
-                      AND author_id = %s \
-                      AND category_id = %s \
-                      AND book_id != %s
-                        LIMIT 1 \
-                    """
-            return bool(self.fetch_one(query, (title, author_id, category_id, book_id)))
-
-    def edition_exists(self, book_id, edition_number):
-        query = """
-            SELECT edition_id
-            FROM editions
-            WHERE book_id = %s AND edition_number = %s
-            LIMIT 1
-        """
-        return self.fetch_one(query, (book_id, edition_number))
-
     def get_members(self):
         self.cursor.execute("""
             SELECT * FROM users WHERE role='member'
@@ -453,36 +457,80 @@ class LibrarianModel:
             print("Error in get_books_with_editions:", e)
             return []
 
-    def read_last_book(self, book_id):
-        query = "SELECT title FROM books WHERE book_id = %s LIMIT 1"
-        row = self.fetch_one(query, (book_id,))
-        return row["title"] if row else None
+    def is_member_holding_edition(self, member_id, edition_id):
+        """
+        Checks if the member has this edition and returns the specific reason.
+        Excludes 'cancelled' requests so members can re-request.
+        """
+        sql = """
+              /* 1. Check if they currently have the physical book */
+              SELECT 'borrowed' AS reason
+              FROM issues i
+                       JOIN book_copies bc ON i.copy_id = bc.copy_id
+              WHERE i.member_id = %s
+                AND bc.edition_id = %s
+                AND i.status = 'borrowed'
 
-    #check if the member al ready takes that copy
-    def is_member_borrowed(self, copy_id, member_id):
-            self.cursor.execute("""
-                                SELECT member_id
-                                FROM issues
-                                WHERE member_id = %s AND copy_id = %s
-                                  AND status = 'borrowed' LIMIT 1
-                                """, (member_id,copy_id))
-            return self.cursor.fetchone()  # returns None if no copy available
+              UNION ALL
 
-    def is_member_borrow_limit_reached(self, member_id):
-        self.cursor.execute("""
-                            SELECT COUNT(*) >= (SELECT CAST(policy_value AS UNSIGNED)
-                                                FROM library_policies
-                                                WHERE policy_key = 'allowed_borrowed'
-                                       LIMIT 1 ) as is_reached
-                            FROM issues
-                            WHERE member_id = %s
-                              AND status = 'borrowed'
-                            """, (member_id,))
+              /* 2. Check if they have an active (pending or approved) request */
+              /* Note: 'cancelled' status is NOT included here, so it won't block them */
+              SELECT 'reserved' AS reason
+              FROM requests
+              WHERE member_id = %s
+                AND edition_id = %s
+                AND status IN ('pending', 'approved')
+              """
+        try:
+            row = self.fetch_one(sql, (member_id, edition_id, member_id, edition_id))
 
-        result = self.cursor.fetchone()
-        # Using .get() prevents a crash if the result is None
-        return bool(result.get('is_reached')) if result else False
+            if row:
+                # If we found a row, it means they are currently blocked
+                return True, row['reason']
 
+            # If no row is found (or if the only rows were 'cancelled'), return False
+            return False, None
+
+        except Exception as e:
+            print(f"Error checking holding status: {e}")
+            return True, "error"
+
+    def has_reached_limits(self, member_id, request_type):
+        """
+        Checks if a member has reached the policy limit for borrowing or reserving.
+        Uses the dictionary-based cursor for clean column access.
+        """
+        policy_key = 'allowed_borrow' if request_type == 'borrow' else 'allowed_reserve'
+
+        try:
+            # 1. Use your helper to get the policy
+            query = "SELECT policy_value FROM library_policies WHERE policy_key = %s"
+            row = self.fetch_one(query, (policy_key,))
+
+            # Fallback to 3 if the policy doesn't exist in the DB
+            limit = int(float(row['policy_value'])) if row else 3
+
+            # 2. Use your helper to count active requests
+            # Note: We name the result 'total' so we can access it by that name
+            count_query = """
+                          SELECT COUNT(*) as total
+                          FROM requests
+                          WHERE member_id = %s
+                            AND request_type = %s
+                            AND status IN ('pending', 'approved') \
+                          """
+            count_row = self.fetch_one(count_query, (member_id, request_type))
+            current_count = count_row['total'] if count_row else 0
+
+            # 3. Logic Check
+            if current_count >= limit:
+                return True, f"Limit reached! You already have {current_count}/{limit} active {request_type} requests."
+
+            return False, "Under limit"
+
+        except Exception as e:
+            print(f"Error checking limit: {e}")
+            return True, "System error verifying limits."
 
     def update_status_issue(self, issue_id, status):
         query = """
@@ -534,19 +582,19 @@ class LibrarianModel:
         self.connection.commit()
         return self.cursor.rowcount > 0
 
-    # def is_reserved(self, request_id, member_id, edition_id):
-    #     """
-    #     Fetch a single issue from the database, including its copy and edition details.
-    #     Returns a dictionary if found, else None.
-    #     """
-    #     query = """
-    #             SELECT *
-    #             FROM requests
-    #             WHERE request_id = %s AND member_id = %s AND edition_id = %s AND status = 'reserved' \
-    #             """
-    #     self.cursor.execute(query, (request_id, member_id, edition_id))
-    #     row = self.cursor.fetchone()
-    #     return row
+    def is_reserved_member(self,member_id, edition_id):
+        """
+        Fetch a single issue from the database, including its copy and edition details.
+        Returns a dictionary if found, else None.
+        """
+        query = """
+                SELECT *
+                FROM requests
+                WHERE member_id = %s AND edition_id = %s AND status = 'pending' \
+                """
+        self.cursor.execute(query, (request_id, member_id, edition_id))
+        row = self.cursor.fetchone()
+        return row
     #
     #     # ================= DASHBOARD FUNCTIONS ================= #
 

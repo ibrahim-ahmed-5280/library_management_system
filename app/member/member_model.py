@@ -93,6 +93,51 @@ class MemberModel:
             print(f'Error: {e}')
             return False, []
 
+    def has_reached_limit(self, member_id, request_type):
+        """
+        Checks if a member has reached the policy limit for borrowing or reserving.
+        Only considers requests with status 'pending' or 'approved'.
+        """
+        # 1. Determine the policy key based on the request type
+        if request_type == 'borrow':
+            policy_key = 'allowed_borrow'
+        elif request_type == 'reserve':
+            policy_key = 'allowed_reserve'
+        else:
+            return True, "Invalid request type"
+
+        try:
+            # 2. Get the limit value from library_policies
+            policy_sql = "SELECT policy_value FROM library_policies WHERE policy_key = %s"
+            self.cursor.execute(policy_sql, (policy_key,))
+            policy_result = self.cursor.fetchone()
+
+            # Default to 3 if policy is missing in DB
+            limit = int(policy_result[0]) if policy_result else 3
+
+            # 3. Count active requests for this member
+            # We only count 'pending' and 'approved' as they are "active"
+            count_sql = """
+                        SELECT COUNT(*)
+                        FROM requests
+                        WHERE member_id = %s
+                          AND request_type = %s
+                          AND status IN ('pending', 'approved') \
+                        """
+            self.cursor.execute(count_sql, (member_id, request_type))
+            current_count = self.cursor.fetchone()[0]
+
+            # 4. Logic Check
+            if current_count >= limit:
+                return True, f"Limit reached! You already have {current_count} {request_type} requests active (Pending/Approved)."
+
+            return False, "Under limit"
+
+        except Exception as e:
+            print(f"Error checking limit: {e}")
+            # Return True on error to be safe (prevents bypass)
+            return True, "System error verifying limits."
+
     # ==============================================#
     # ========== INSERT OPERATIONS =================#
     def create_borrow_request(self, member_id, edition_id):
@@ -133,6 +178,115 @@ class MemberModel:
 
     # ==============================================#
     # ========== READ OPERATIONS =================#
+    ### 1. Total Books Borrowed (All-time)
+    def get_total_borrowed_count(self, member_id):
+        sql = "SELECT COUNT(*) as total FROM issues WHERE member_id = %s"
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 2. Currently Borrowed (Books in possession)
+    def get_currently_borrowed_count(self, member_id):
+        sql = "SELECT COUNT(*) as total FROM issues WHERE member_id = %s AND status = 'borrowed'"
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 3. Available to Borrow (Total available copies in library)
+    def get_available_books_count(self):
+        sql = "SELECT COUNT(*) as total FROM book_copies WHERE status = 'available'"
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchone()
+            return True, result[0] if result else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 4. Overdue Books
+    def get_overdue_count(self, member_id):
+        # Returns count where return_date is null and due_date has passed
+        sql = """
+              SELECT COUNT(*) as total \
+              FROM issues
+              WHERE member_id = %s
+                AND status = 'borrowed'
+                AND due_date < CURDATE()
+              """
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 5. Reserved Books
+    def get_reserved_count(self, member_id):
+        sql = "SELECT COUNT(*) as total FROM requests WHERE member_id = %s AND request_type = 'reserve'"
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 6. In-Library Reading (Active sessions)
+    def get_active_reading_sessions_count(self, member_id):
+        sql = "SELECT COUNT(*) as total FROM reading_sessions WHERE member_id = %s AND end_time IS NULL"
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 7. Total Reading Hours (All-time)
+    def get_total_reading_hours(self, member_id):
+        # Calculates sum of hours between start and end time
+        sql = """
+              SELECT SUM(TIMESTAMPDIFF(HOUR, start_time, end_time)) as total_hours
+              FROM reading_sessions
+              WHERE member_id = %s \
+                AND end_time IS NOT NULL
+              """
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result and result[0] else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
+    ### 8. Monthly Reading Hours
+    def get_monthly_reading_hours(self, member_id):
+        sql = """
+              SELECT SUM(TIMESTAMPDIFF(HOUR, start_time, end_time)) as monthly_hours
+              FROM reading_sessions
+              WHERE member_id = %s
+                  AND end_time IS NOT NULL
+                  AND MONTH ( \
+                  start_time) = MONTH (CURRENT_DATE ())
+                AND YEAR (start_time) = YEAR (CURRENT_DATE ())
+              """
+        try:
+            self.cursor.execute(sql, (member_id,))
+            result = self.cursor.fetchone()
+            return True, result[0] if result and result[0] else 0
+        except Exception as e:
+            print(f'Error: {e}')
+            return False, 0
+
     def view_books(self):
         sql = """
               SELECT b.book_id, \
