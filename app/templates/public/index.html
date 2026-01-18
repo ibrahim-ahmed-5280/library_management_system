@@ -621,6 +621,24 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Hide the second logo by default in light mode */
+        [data-theme="light"] .navbar-brand.dark-logo:first-of-type {
+            display: none;
+        }
+
+        [data-theme="light"] .navbar-brand.dark-logo:last-of-type {
+            display: block;
+        }
+
+        /* Hide the first logo in dark mode */
+        [data-theme="dark"] .navbar-brand.dark-logo:last-of-type {
+            display: none;
+        }
+
+        [data-theme="dark"] .navbar-brand.dark-logo:first-of-type {
+            display: block;
+        }
     </style>
 </head>
 
@@ -636,8 +654,11 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-book-fill me-2"></i>LibraryMS
+            <a class="navbar-brand dark-logo" href="/">
+                <span><img src="./../../static/images/library-3.png" alt="" height="30"></span>
+            </a>
+            <a class="navbar-brand dark-logo" href="/">
+                <span><img src="./../../static/images/library-1.png" alt="" height="30"></span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -708,7 +729,7 @@
                         <div class="stat-icon icon-books">
                             <i class="bi bi-book-fill"></i>
                         </div>
-                        <div class="stat-number" >+{{stats_public.total_books}}
+                        <div class="stat-number">+{{stats_public.total_books}}
                         </div>
                         <div class="stat-label">Total Books</div>
                     </div>
@@ -728,8 +749,8 @@
                         <div class="stat-icon icon-categories">
                             <i class="bi bi-grid-fill"></i>
                         </div>
-                        <div class="stat-number"
-                            data-target="">+{{ stats_public.total_categories if stats_public else 0 }}</div>
+                        <div class="stat-number" data-target="">+{{ stats_public.total_categories if stats_public else 0
+                            }}</div>
                         <div class="stat-label">Categories</div>
                     </div>
                 </div>
@@ -1045,7 +1066,7 @@
 
         window.addEventListener('scroll', animateOnScroll);
         animateOnScroll(); // Run once on load
-        
+
     </script>
 </body>
 

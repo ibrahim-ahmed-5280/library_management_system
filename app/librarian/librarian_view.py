@@ -219,6 +219,7 @@ def reverse_requests_page():
     if not email:
         return login_page_librarian()
     return_requests = get_requests_by_type('reserve')
+    print(f"return_requests: {return_requests}")
     return render_template('librarian/reverse_requests.html',
                            requests=return_requests, request_type='reverse')
 
@@ -258,21 +259,23 @@ def return_issue_page():
     return render_template('librarian/return_books.html',
                            issues=[])
 
-@app.route('/fines_overdue_page')
+@app.route('/librarian/fines_page')
 def fines_overdue_page():
     email = get_librarian_session()
     if not email:
         return login_page_librarian()
-    connection_status, librarian_modal = check_librarian_model_connection()
+
+    connection_status, librarian_model = check_librarian_model_connection()
     if not connection_status:
         return jsonify(success=False, message="Database connection failed"), 500
 
-    all_issues = librarian_modal.get_all_issues()
-    if all_borrows:
-        return render_template('librarian/return_books.html',
-                               issues=all_borrows,)
-    return render_template('librarian/return_books.html',
-                           issues=[])
+    fines = librarian_model.get_all_overdue_fines()
+
+    return render_template(
+        'librarian/fines_and_overdue.html',
+        fines=fines,
+        today=date.today()
+    )
 
 #=====================================================#
 #============ CHECK FUNCTIONS ========================#
@@ -827,8 +830,13 @@ def update_issue():
 @app.route('/return_issue/update', methods=['POST'])
 def update_return_issue():
     data = request.get_json()
+    print(f"data: {data}")
     issue_id = data.get('issue_id')
     status = data.get('status')
+    request_id = data.get('request_id')
+    copy_id = data.get('copy_id')
+    due_date_str = data.get('due_date')  # Format: 'YYYY-MM-DD'
+    member_id = data.get('member_id')
 
     if status not in ['returned', 'borrowed']:
         return jsonify({"success": False, "message": "Invalid status"}), 400
@@ -836,12 +844,35 @@ def update_return_issue():
     connection_status, librarian_modal = check_librarian_model_connection()
     if not connection_status:
         return jsonify(success=False, message="Database connection failed"), 500
-    current_issue = librarian_modal.get_issue(issue_id)
-    print(current_issue)
-    flag = librarian_modal.update_status_issue(issue_id,status)
+
+    # 1. Update the issue status
+    flag = librarian_modal.update_status_issue(issue_id, status)
+
     if flag:
-        librarian_modal.update_status(current_issue.get('copy_id'), "available")
-        return jsonify(success=True, message="Issue updated with new status successfully.")
+        # 2. Handle Fine Calculation if returning a book
+        if status == 'returned':
+            today = datetime.now().date()
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+
+            if today > due_date:
+                # Calculate days overdue
+                overdue_days = (today - due_date).days
+
+                # Get fine rate from policy
+                fine_rate = float(librarian_modal.get_policy_value('fine_overdue'))
+                total_fine = overdue_days * fine_rate
+
+                # Insert fine into database
+                if total_fine > 0:
+                    librarian_modal.add_fine(issue_id, member_id, total_fine)
+
+            # 3. Update Book and Request status
+            librarian_modal.update_status_issue(issue_id, status)
+            librarian_modal.update_status(copy_id, "available")
+            librarian_modal.update_request_status(request_id, 'completed')
+
+        return jsonify(success=True, message="Issue updated and processed successfully.")
+
     return jsonify({"success": False, "message": "Issue not updated successfully."})
 
 @app.route('/librarian/approve_borrow_requests', methods=['POST'])
@@ -849,12 +880,14 @@ def approve_borrow_requests():
     email = get_librarian_session()
     if not email:
         return redirect(url_for('login')) # Use redirect for login too
+
     data = request.get_json()
-    request_id = data.get('request_id')
+    print(f"Data in request: {data}")
+    request_id = int(data.get('request_id'))
     status = data.get('status')
-    member_id = data.get('member_id')
+    member_id = int(data.get('member_id'))
     due_date_str = data.get('due_date')
-    edition_id = data.get('edition_id')
+    edition_id = int(data.get('edition_id'))
 
     try:
         due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
@@ -866,9 +899,9 @@ def approve_borrow_requests():
     connect_status, librarian_model = check_librarian_model_connection()
     if not connect_status:
         return jsonify(success=False, message="Database connection failed"), 500
-    reached_borrow, msg = librarian_model.has_reached_limits(member_id, 'borrow')
-    if reached_borrow:
-        return jsonify(success=False, message="Reached limits"), 400
+    # reached_borrow, msg = librarian_model.has_reached_limits(member_id, 'borrow')
+    # if reached_borrow:
+    #     return jsonify(success=False, message="Reached limits"), 400
     flag = librarian_model.update_request_status(request_id, status)
     if flag:
         copy = librarian_model.get_available_copy(edition_id)
@@ -885,10 +918,11 @@ def approve_reserve_requests():
         return redirect(url_for('login'))  # Use redirect for login too
 
     data = request.get_json()
-    request_id = data.get('request_id')
+    request_id = int(data.get('request_id'))
     status = data.get('status')
     due_date_str = data.get('due_date')
-    member_id = data.get('member_id')
+    member_id = int(data.get('member_id'))
+    edition_id = int(data.get('edition_id'))
 
     try:
         due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
@@ -911,6 +945,25 @@ def approve_reserve_requests():
         return jsonify(success=True, message="Request approved successfully."), 200
     else:
         return jsonify(success=False, message="Request failed. Please try again."), 500
+
+@app.route('/librarian/pay_fine', methods=['POST'])
+def pay_fine():
+    email = get_librarian_session()
+    if not email:
+        return jsonify(success=False, message="Unauthorized"), 401
+
+    connection_status, librarian_model = check_librarian_model_connection()
+    if not connection_status:
+        return jsonify(success=False, message="Database connection failed"), 500
+
+    data = request.get_json()
+    issue_id = data.get('issue_id')
+
+    success = librarian_model.update_payment_status(issue_id,'paid')
+
+    if success:
+        return jsonify(success=True)
+    return jsonify(success=False, message="Payment update failed")
 
 @app.route('/change_password_librarian', methods=['POST'])
 def change_password_librarian():

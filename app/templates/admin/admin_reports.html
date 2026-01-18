@@ -23,11 +23,15 @@
             <div class="col-md-3">
                 <select name="type" class="form-select">
                     <option value="">All Types</option>
-                    <option value="issue">Borrow / Return</option>
-                    <option value="reading">In-Library Reading</option>
-                    <option value="request">Requests</option>
-                    <option value="fine">Fines</option>
+                    <option value="issue" {{ 'selected' if request.args.get('type')=='issue' else '' }}>Borrow / Return
+                    </option>
+                    <option value="reading" {{ 'selected' if request.args.get('type')=='reading' else '' }}>In-Library
+                        Reading</option>
+                    <option value="request" {{ 'selected' if request.args.get('type')=='request' else '' }}>Requests
+                    </option>
+                    <option value="fine" {{ 'selected' if request.args.get('type')=='fine' else '' }}>Fines</option>
                 </select>
+
             </div>
 
             <div class="col-md-3">
@@ -94,8 +98,14 @@
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <a href="{{ url_for('export_report', format='pdf') }}" target="_blank">PDF</a>
-                <a href="{{ url_for('export_report', format='excel') }}" target="_blank">Excel</a>
+                <a href="{{ url_for('export_report_pdf', **request.args) }}" class="btn btn-outline-danger w-100 mb-2">
+                    PDF
+                </a>
+
+                <a href="{{ url_for('export_report_excel', **request.args) }}" class="btn btn-outline-success w-100">
+                    Excel
+                </a>
+
 
             </div>
         </div>

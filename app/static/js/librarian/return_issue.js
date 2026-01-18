@@ -1,4 +1,4 @@
-function return_issue(issue_id,copy_id) {
+function return_issue(issue_id, copy_id,requestId,dueDate,memberId) {
     // Get elements
     const statusSelect = document.getElementById(`return_issue_status${issue_id}`);
     console.log(statusSelect)
@@ -32,27 +32,32 @@ function return_issue(issue_id,copy_id) {
         body: JSON.stringify({
             issue_id: issue_id,
             status: status,
-            copy_id:copy_id
+            copy_id: copy_id,
+            request_id:requestId,
+            due_date:dueDate,
+            member_id:memberId
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        spinner.classList.add('d-none');
-        btnText.textContent = "Return Issue";
+        .then(response => response.json())
+        .then(data => {
+            spinner.classList.add('d-none');
+            btnText.textContent = "Return Issue";
 
-        if (data.success) {
-            successMsg.textContent = data.message || "Status updated successfully!";
-            successMsg.classList.remove('d-none');
-        } else {
-            errorMsg.textContent = data.message || "Failed to update status.";
+            if (data.success) {
+                successMsg.textContent = data.message || "Status updated successfully!";
+                successMsg.classList.remove('d-none');
+                setTimeout(() => {
+                }, 1000);
+            } else {
+                errorMsg.textContent = data.message || "Failed to update status.";
+                errorMsg.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            spinner.classList.add('d-none');
+            btnText.textContent = "Return Issue";
+            errorMsg.textContent = "An error occurred. Try again.";
             errorMsg.classList.remove('d-none');
-        }
-    })
-    .catch(error => {
-        spinner.classList.add('d-none');
-        btnText.textContent = "Return Issue";
-        errorMsg.textContent = "An error occurred. Try again.";
-        errorMsg.classList.remove('d-none');
-        console.error("Error:", error);
-    });
+            console.error("Error:", error);
+        });
 }

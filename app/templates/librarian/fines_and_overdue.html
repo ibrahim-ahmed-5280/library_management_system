@@ -1,5 +1,5 @@
 {% extends "librarian/admin_base.html" %}
-{% block title %}Manage Returns & Payments | LMS{% endblock %}
+{% block title %}Manage Fines | LMS{% endblock %}
 
 {% block content %}
 <style>
@@ -14,20 +14,21 @@
             <div class="page-title-right">
                 <ol class="breadcrumb m-0">
                     <li class="breadcrumb-item"><a href="#">LMS</a></li>
-                    <li class="breadcrumb-item active">Manage Returns & Payments</li>
+                    <li class="breadcrumb-item active">Manage Fines</li>
                 </ol>
             </div>
-            <h4 class="page-title">Manage Overdue Books & Payments</h4>
+            <h4 class="page-title">Overdue Fines</h4>
         </div>
     </div>
 </div>
 
-<!-- ================== ISSUES TABLE ================== -->
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-body">
+
                 <table id="datatable-buttons" class="table table-striped dt-responsive nowrap w-100">
+
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -35,98 +36,140 @@
                             <th>Book / Edition</th>
                             <th>Due Date</th>
                             <th>Overdue</th>
+                            <th>Fine</th>
                             <th>Payment Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        {% for issue in issues %}
-                        {% set is_overdue = issue.due_date < current_date %}
+                        {% if fines %}
+                        {% for f in fines %}
                         <tr>
-                            <td>{{ issue.issue_id }}</td>
-                            <td>{{ issue.member_name }}</td>
-                            <td>{{ issue.book_title }} / {{ issue.edition_number }}</td>
-                            <td>{{ issue.due_date }}</td>
+                            <td>{{ f.issue_id }}</td>
+                            <td>{{ f.member_name }}</td>
+                            <td>{{ f.book_title }} / {{ f.edition_number }}</td>
+                            <td>{{ f.due_date }}</td>
+
                             <td>
-                                {% if is_overdue and issue.status != 'returned' %}
-                                    <span class="badge bg-danger">Overdue</span>
+                                <span class="badge bg-danger">
+                                    {{ f.overdue_days }} days
+                                </span>
+                            </td>
+
+                            <td>
+                                ${{ "%.2f"|format(f.fine_amount) }}
+                            </td>
+
+                            <td>
+                                <span
+                                    class="badge {% if f.paid_status=='paid' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ f.paid_status|capitalize }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if f.paid_status == 'unpaid' %}
+                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#fineModal{{ f.issue_id }}">
+                                    <i class="mdi mdi-cash-check me-1"></i>
+                                    Mark Paid
+                                </button>
                                 {% else %}
-                                    <span class="badge bg-success">OK</span>
+                                <span class="text-muted">—</span>
                                 {% endif %}
-                            </td>
-                            <td>
-                                <select class="form-control payment-status" 
-                                        data-issue="{{ issue.issue_id }}" 
-                                        id="payment_status_{{ issue.issue_id }}">
-                                    <option value="unpaid" {% if issue.payment_status=='unpaid' %}selected{% endif %}>Unpaid</option>
-                                    <option value="paid" {% if issue.payment_status=='paid' %}selected{% endif %}>Paid</option>
-                                </select>
-                                <div class="invalid-feedback" id="payment_status_error_{{ issue.issue_id }}"></div>
-                            </td>
-                            <td class="align-middle">
-                                <div class="dropdown dropstart">
-                                    <a href="#" class="action-icon" data-bs-toggle="dropdown">
-                                        <i class="mdi mdi-dots-vertical"></i>
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a href="#" class="dropdown-item" data-bs-toggle="modal"
-                                                data-bs-target="#returnIssueModal{{ issue.issue_id }}">
-                                                <i class="mdi mdi-square-edit-outline me-1"></i>
-                                                Return Issue
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
                             </td>
                         </tr>
 
-                        <!-- =============== RETURN MODAL =============== -->
-                        <div class="modal fade" id="returnIssueModal{{issue.issue_id}}" tabindex="-1">
-                            <div class="modal-dialog modal-md">
+                        <!-- ================= PAYMENT MODAL ================= -->
+                        <div class="modal fade" id="fineModal{{ f.issue_id }}" tabindex="-1">
+                            <div class="modal-dialog modal-sm modal-dialog-centered">
                                 <div class="modal-content">
+
                                     <div class="modal-header">
-                                        <h5 class="modal-title">Return Issue</h5>
+                                        <h5 class="modal-title">Confirm Fine Payment</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
-                                    <div class="modal-body">
-                                        <form id="returnIssueForm{{issue.issue_id}}" novalidate>
-                                            <div class="alert alert-success d-none" id="return_issue_succ_msg{{issue.issue_id}}"></div>
-                                            <div class="alert alert-danger d-none" id="return_issue_err_msg{{issue.issue_id}}"></div>
 
-                                            <input type="hidden" id="return_issue_copy{{issue.issue_id}}" value="{{ issue.copy_id }}">
+                                    <div class="modal-body text-center">
 
-                                            <div class="mb-3">
-                                                <label class="form-label">Status</label>
-                                                <select class="form-control" id="return_issue_status{{issue.issue_id}}">
-                                                    <option value="returned" {%if issue.status == 'returned'%} selected {%endif%}>Returned</option>
-                                                    <option value="borrowed" {%if issue.status == 'borrowed'%} selected {%endif%}>Borrowed</option>
-                                                </select>
-                                                <div class="invalid-feedback" id="return_issue_status_error{{issue.issue_id}}"></div>
-                                            </div>
+                                        <!-- Alerts -->
+                                        <div class="alert alert-success d-none" id="fine_succ_msg{{ f.issue_id }}">
+                                        </div>
 
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="button" class="btn btn-danger" id="return_btn{{ issue.issue_id }}"
-                                                    onclick="return_issue(`{{ issue.issue_id }}`, `{{ issue.copy_id }}`)">
-                                                    <span id="return_spinner_{{ issue.issue_id }}" class="spinner-border spinner-border-sm d-none"></span>
-                                                    <span id="text_btn{{ issue.issue_id }}">Return Issue</span>
-                                                </button>
-                                            </div>
-                                        </form>
+                                        <div class="alert alert-danger d-none" id="fine_err_msg{{ f.issue_id }}"></div>
+
+                                        <p class="mb-1">Fine Amount</p>
+                                        <h4 class="text-danger mb-3">
+                                            ${{ "%.2f"|format(f.fine_amount) }}
+                                        </h4>
+
                                     </div>
+
+                                    <div class="modal-footer justify-content-center">
+                                        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                            Cancel
+                                        </button>
+
+                                        <button class="btn btn-success btn-sm" onclick="pay_fine(`{{ f.issue_id }}`)">
+                                            <span id="fine_spinner_{{ f.issue_id }}"
+                                                class="spinner-border spinner-border-sm d-none"></span>
+                                            <span id="fine_btn_text{{ f.issue_id }}">
+                                                Confirm
+                                            </span>
+                                        </button>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
-
                         {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                No overdue fines found
+                            </td>
+                        </tr>
+                        {% endif %}
                     </tbody>
+
+
                 </table>
+
             </div>
         </div>
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/librarian/return_issue.js') }}"></script>
-<script src="{{ url_for('static', filename='js/librarian/payment_status.js') }}"></script>
+<!-- ============== PAYMENT MODAL ============== -->
+<div class="modal fade" id="fineModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Fine Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <input type="hidden" id="currentIssueId">
+                <p class="mb-2">Fine Amount</p>
+                <h4 id="fineAmount" class="text-danger"></h4>
+                <div id="fineAlert" class="mt-2"></div>
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button class="btn btn-success btn-sm" onclick="payFine()">
+                    Confirm
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/librarian/fines.js') }}"></script>
 {% endblock %}

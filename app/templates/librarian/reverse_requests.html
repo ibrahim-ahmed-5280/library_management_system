@@ -65,9 +65,9 @@
                                     <i class="mdi mdi-dots-vertical"></i>
                                 </a>
                                 {%else%}
-                                <a href="#" class="action-icon" data-bs-toggle="dropdown">
+                                <button class="btn btn-danger" disabled>
                                     <i class="uil uil-lock text-white"></i>Update
-                                </a>
+                                </button>
                                 {%endif%}
                             </td>
                         </tr>
@@ -109,8 +109,8 @@
 
 
                                             <div class="d-flex justify-content-end">
-                                                <button class="btn btn-primary"
-                                                    onclick="update_request_status('{{ req.request_id }}','{{req.member_id}}')">
+                                                <button class="btn btn-primary" type="button"
+                                                    onclick="update_request_status('{{ req.request_id }}','{{req.member_id}}','{{req.edition_id}}')">
                                                     Update status
                                                 </button>
                                             </div>

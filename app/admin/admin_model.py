@@ -291,74 +291,107 @@ class AdminModel:
                 print(f'Error: {e}')
                 return False, f'Error {e}.'
 
-    def get_system_reports(self):
-        self.cursor.execute("""
-                            SELECT 'Borrow/Return'        AS report_type,
-                                   i.issue_id             AS ref_id,
-                                   b.title                AS book_title,
-                                   bc.copy_id,
-                                   m.name                 AS member_name,
-                                   l.name                 AS librarian_name,
-                                   i.issue_date           AS activity_date,
-                                   i.status,
-                                   IFNULL(f.amount, NULL) AS amount
-                            FROM issues i
-                                     JOIN book_copies bc ON i.copy_id = bc.copy_id
-                                     JOIN editions e ON bc.edition_id = e.edition_id
-                                     JOIN books b ON e.book_id = b.book_id
-                                     JOIN users m ON i.member_id = m.user_id
-                                     JOIN users l ON i.librarian_id = l.user_id
-                                     LEFT JOIN fines f ON i.issue_id = f.issue_id
+    def get_system_reports(self, report_type=None, date_from=None, date_to=None):
+        try:
+            query = """
+                    SELECT * \
+                    FROM (SELECT 'Borrow/Return' AS report_type, \
+                                 i.issue_id      AS ref_id, \
+                                 b.title         AS book_title, \
+                                 bc.copy_id, \
+                                 m.name          AS member_name, \
+                                 l.name          AS librarian_name, \
+                                 i.issue_date    AS activity_date, \
+                                 i.status, \
+                                 f.amount \
+                          FROM issues i \
+                                   JOIN book_copies bc ON i.copy_id = bc.copy_id \
+                                   JOIN editions e ON bc.edition_id = e.edition_id \
+                                   JOIN books b ON e.book_id = b.book_id \
+                                   JOIN users m ON i.member_id = m.user_id \
+                                   LEFT JOIN users l ON i.librarian_id = l.user_id \
+                                   LEFT JOIN fines f ON i.issue_id = f.issue_id \
 
-                            UNION ALL
+                          UNION ALL \
 
-                            SELECT 'Reading' AS report_type,
-                                   rs.reading_id,
-                                   b.title,
-                                   bc.copy_id,
-                                   m.name,
-                                   l.name,
-                                   rs.start_time,
-                                   'completed',
-                                   NULL
-                            FROM reading_sessions rs
-                                     JOIN book_copies bc ON rs.copy_id = bc.copy_id
-                                     JOIN editions e ON bc.edition_id = e.edition_id
-                                     JOIN books b ON e.book_id = b.book_id
-                                     JOIN users m ON rs.member_id = m.user_id
-                                     JOIN users l ON rs.librarian_id = l.user_id
+                          SELECT 'Reading', \
+                                 rs.reading_id, \
+                                 b.title, \
+                                 bc.copy_id, \
+                                 m.name, \
+                                 l.name, \
+                                 rs.start_time, \
+                                 'completed', \
+                                 NULL \
+                          FROM reading_sessions rs \
+                                   JOIN book_copies bc ON rs.copy_id = bc.copy_id \
+                                   JOIN editions e ON bc.edition_id = e.edition_id \
+                                   JOIN books b ON e.book_id = b.book_id \
+                                   JOIN users m ON rs.member_id = m.user_id \
+                                   LEFT JOIN users l ON rs.librarian_id = l.user_id \
 
-                            UNION ALL
+                          UNION ALL \
 
-                            SELECT 'Request' AS report_type,
-                                   r.request_id,
-                                   NULL,
-                                   NULL,
-                                   u.name,
-                                   NULL,
-                                   r.request_date,
-                                   r.status,
-                                   NULL
-                            FROM requests r
-                                     JOIN users u ON r.member_id = u.user_id
+                          SELECT 'Request', \
+                                 r.request_id, \
+                                 NULL, \
+                                 NULL, \
+                                 u.name, \
+                                 NULL, \
+                                 r.request_date, \
+                                 r.status, \
+                                 NULL \
+                          FROM requests r \
+                                   JOIN users u ON r.member_id = u.user_id \
 
-                            UNION ALL
+                          UNION ALL \
 
-                            SELECT 'Fine' AS report_type,
-                                   f.fine_id,
-                                   NULL,
-                                   NULL,
-                                   u.name,
-                                   NULL,
-                                   CURDATE(),
-                                   f.paid_status,
-                                   f.amount
-                            FROM fines f
-                                     JOIN users u ON f.member_id = u.user_id
-                            ORDER BY activity_date DESC
-                            """)
+                          SELECT 'Fine', \
+                                 f.fine_id, \
+                                 NULL, \
+                                 NULL, \
+                                 u.name, \
+                                 NULL, \
+                                 i.issue_date, \
+                                 f.paid_status, \
+                                 f.amount \
+                          FROM fines f \
+                                   JOIN users u ON f.member_id = u.user_id \
+                                   JOIN issues i ON f.issue_id = i.issue_id) AS reports
+                    WHERE 1 = 1 \
+                    """
 
-        return self.cursor.fetchall()
+            params = []
+
+            if report_type:
+                mapping = {
+                    "issue": "Borrow/Return",
+                    "reading": "Reading",
+                    "request": "Request",
+                    "fine": "Fine"
+                }
+                query += " AND report_type = %s"
+                params.append(mapping.get(report_type))
+
+            if date_from:
+                query += " AND DATE(activity_date) >= %s"
+                params.append(date_from)
+
+            if date_to:
+                query += " AND DATE(activity_date) <= %s"
+                params.append(date_to)
+
+            query += " ORDER BY activity_date DESC"
+
+            self.cursor.execute(query, params)
+            rows = self.cursor.fetchall()
+
+            columns = [col[0] for col in self.cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+
+        except Exception as e:
+            print("Error in get_system_reports:", e)
+            return []
 
     # =============== Dashboard data ======================#
     def _rows_to_dict(self, rows):

@@ -1,11 +1,20 @@
 from app import app
-from flask import render_template, request, make_response, jsonify, session, redirect, url_for
+from flask import render_template,send_file, request, make_response, jsonify, session, redirect, url_for
 from app.admin.admin_model import AdminModel, AdminDatabase, check_admin_model_connection
 from flask_bcrypt import Bcrypt, check_password_hash, generate_password_hash
 import os,re
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
 bcrypt = Bcrypt(app)
+
+from io import BytesIO
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib import colors
 # ====================================================#
 #================= SESSION STORAGE ===================#
 
@@ -95,17 +104,210 @@ def admin_reports():
     if not connection_status:
         return jsonify({"Database connection failed."})
 
-    reports = admin_model.get_system_reports()
+    report_type = request.args.get("type")   # issue | reading | request | fine
+    date_from = request.args.get("from")     # yyyy-mm-dd
+    date_to = request.args.get("to")         # yyyy-mm-dd
+
+    reports = admin_model.get_system_reports(
+        report_type=report_type,
+        date_from=date_from,
+        date_to=date_to
+    )
 
     return render_template(
         "admin/admin_reports.html",
         reports=reports
     )
 
-# Helper for report page
-@app.route("/admin/reports/export/<format>")
-def export_report(format):
-    return f"Exporting {format}"
+@app.route("/admin/reports/export/excel")
+def export_report_excel():
+    email = get_admin_session()
+    if not email:
+        return login_page()
+
+    connection_status, admin_model = check_admin_model_connection()
+    if not connection_status:
+        return jsonify({"Database connection failed."})
+
+    report_type = request.args.get("type")
+    date_from = request.args.get("from")
+    date_to = request.args.get("to")
+
+    reports = admin_model.get_system_reports(
+        report_type=report_type,
+        date_from=date_from,
+        date_to=date_to
+    )
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "System Reports"
+
+    headers = ["Type", "Reference", "Book", "Copy", "Member", "Librarian", "Date", "Status", "Amount"]
+    ws.append(headers)
+
+    for cell in ws[1]:
+        cell.font = openpyxl.styles.Font(bold=True)
+
+    for r in reports:
+        ws.append([
+            r["report_type"],
+            r["ref_id"],
+            r["book_title"] or "-",
+            r["copy_id"] or "-",
+            r["member_name"],
+            r["librarian_name"] or "-",
+            str(r["activity_date"]),
+            r["status"],
+            r["amount"] if r["amount"] else "-"
+        ])
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="system_reports.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+@app.route("/admin/reports/export/pdf")
+def export_report_pdf():
+    email = get_admin_session()
+    if not email:
+        return login_page()
+
+    connection_status, admin_model = check_admin_model_connection()
+    if not connection_status:
+        return jsonify({"Database connection failed."})
+
+    report_type = request.args.get("type")
+    date_from = request.args.get("from")
+    date_to = request.args.get("to")
+
+    reports = admin_model.get_system_reports(
+        report_type=report_type,
+        date_from=date_from,
+        date_to=date_to
+    )
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=40,
+        bottomMargin=30
+    )
+
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # ---------- TITLE ----------
+    title_style = ParagraphStyle(
+        name="TitleStyle",
+        fontSize=20,
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        textColor=colors.HexColor("#1f2937")
+    )
+
+    subtitle_style = ParagraphStyle(
+        name="SubTitleStyle",
+        fontSize=11,
+        alignment=TA_CENTER,
+        textColor=colors.grey
+    )
+
+    elements.append(Paragraph("Library System Reports", title_style))
+    elements.append(Paragraph(
+        f"Generated on {datetime.now().strftime('%d %B %Y, %H:%M')}",
+        subtitle_style
+    ))
+    elements.append(Spacer(1, 20))
+
+    # ---------- TABLE DATA ----------
+    table_data = [[
+        "Type", "Ref", "Book", "Copy",
+        "Member", "Librarian", "Date", "Status", "Amount"
+    ]]
+
+    for r in reports:
+        table_data.append([
+            r["report_type"],
+            r["ref_id"],
+            r["book_title"] or "-",
+            r["copy_id"] or "-",
+            r["member_name"],
+            r["librarian_name"] or "-",
+            str(r["activity_date"]).split(" ")[0],
+            r["status"].capitalize(),
+            f"${r['amount']}" if r["amount"] else "-"
+        ])
+
+    col_widths = [
+        60,   # Type
+        35,   # Ref
+        80,   # Book
+        35,   # Copy
+        90,   # Member
+        90,   # Librarian
+        60,   # Date
+        55,   # Status
+        45    # Amount
+    ]
+
+    table = Table(table_data, colWidths=col_widths, repeatRows=1)
+
+    table.setStyle(TableStyle([
+        # Header
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2563eb")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
+
+        # Body
+        ("ALIGN", (0, 1), (-1, -1), "CENTER"),
+        ("FONT", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 1), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+
+        # Zebra rows
+        ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+         [colors.whitesmoke, colors.transparent]),
+    ]))
+
+    elements.append(table)
+    elements.append(Spacer(1, 20))
+
+    # ---------- FOOTER ----------
+    footer_style = ParagraphStyle(
+        name="Footer",
+        fontSize=9,
+        alignment=TA_CENTER,
+        textColor=colors.grey
+    )
+
+    elements.append(Paragraph(
+        "Library Management System • Confidential Report",
+        footer_style
+    ))
+
+    doc.build(elements)
+
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="system_reports.pdf",
+        mimetype="application/pdf"
+    )
+
 
 #Add admins page
 @app.route('/admin/add_admin_page')

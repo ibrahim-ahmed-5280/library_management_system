@@ -342,6 +342,7 @@ class LibrarianModel:
                                     i.issue_date,
                                        i.copy_id,
                                        i.member_id,
+                                       i.request_id,
                                        i.due_date,
                                        i.return_date,
                                        e.edition_id,
@@ -564,24 +565,6 @@ class LibrarianModel:
         row = self.cursor.fetchone()
         return row
 
-    def update_issue(self, issue_id, member_id, due_date,copy_id):
-        query = """
-                UPDATE issues
-                SET member_id=%s, \
-                    copy_id=%s, \
-                    due_date=%s
-                WHERE issue_id = %s \
-                """
-        self.cursor.execute(query, (member_id, copy_id, due_date, issue_id))
-        self.connection.commit()
-        return self.cursor.rowcount > 0
-
-    def update_payment_status(self, issue_id, payment_status):
-        query = "UPDATE issues SET payment_status = %s WHERE issue_id = %s"
-        self.cursor.execute(query, (payment_status, issue_id))
-        self.connection.commit()
-        return self.cursor.rowcount > 0
-
     def is_reserved_member(self,member_id, edition_id):
         """
         Fetch a single issue from the database, including its copy and edition details.
@@ -595,6 +578,67 @@ class LibrarianModel:
         self.cursor.execute(query, (request_id, member_id, edition_id))
         row = self.cursor.fetchone()
         return row
+
+    #========================= FINES =============================  #
+    def get_all_overdue_fines(self):
+        try:
+            self.cursor.execute("""
+                                SELECT i.issue_id,
+                                       i.member_id,
+                                       u.name                          AS member_name,
+                                       b.title                         AS book_title,
+                                       e.edition_number,
+                                       i.due_date,
+
+                                       DATEDIFF(CURDATE(), i.due_date) AS overdue_days,
+
+                                       (DATEDIFF(CURDATE(), i.due_date) *
+                                        (SELECT policy_value
+                                         FROM library_policies
+                                         WHERE policy_key = 'fine_overdue')
+                                           )                           AS fine_amount,
+
+                                       IFNULL(f.paid_status, 'unpaid') AS paid_status
+
+                                FROM issues i
+                                         JOIN users u ON u.user_id = i.member_id
+                                         JOIN book_copies bc ON bc.copy_id = i.copy_id
+                                         JOIN editions e ON e.edition_id = bc.edition_id
+                                         JOIN books b ON b.book_id = e.book_id
+                                         LEFT JOIN fines f ON f.issue_id = i.issue_id
+
+                                WHERE i.status = 'returned'
+                                  AND i.due_date < CURDATE()
+
+                                ORDER BY i.due_date ASC
+                                """)
+
+            return self.cursor.fetchall()
+
+        except Exception as e:
+            print("Error in get_all_overdue_fines:", e)
+            return []
+
+    def get_policy_value(self, key):
+        query = "SELECT policy_value FROM library_policies WHERE policy_key = %s"
+        # Execute query and return the value (e.g., '0.5')
+        self.cursor.execute(query, (key,))
+        result = self.cursor.fetchone()
+        return result['policy_value'] if result else 0
+
+    def add_fine(self, issue_id, member_id, amount):
+        query = """
+                INSERT INTO fines (issue_id, member_id, amount, paid_status)
+                VALUES (%s, %s, %s, 'unpaid') \
+                """
+        self.cursor.execute(query, (issue_id, member_id, amount))
+        self.connection.commit()
+
+    def update_payment_status(self, issue_id, payment_status):
+        query = "UPDATE fines SET paid_status = %s WHERE issue_id = %s"
+        self.cursor.execute(query, (payment_status, issue_id))
+        self.connection.commit()
+        return self.cursor.rowcount > 0
     #
     #     # ================= DASHBOARD FUNCTIONS ================= #
 

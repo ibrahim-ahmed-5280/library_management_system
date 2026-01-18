@@ -77,7 +77,7 @@ class MemberModel:
               FROM requests
               WHERE edition_id = %s
                 AND member_id = %s
-                AND (request_type = 'borrow' OR request_type = 'reserve');
+                AND (status = 'pending' OR request_type = 'approved');
               """
 
         try:
@@ -345,7 +345,7 @@ class MemberModel:
                        JOIN books b ON b.book_id = e.book_id
 
               WHERE r.member_id = %s
-                AND r.request_type IN ('borrow', 'reserve')
+                AND r.status IN ('borrow', 'reserve')
 
               ORDER BY r.request_date DESC \
               """
