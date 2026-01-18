@@ -3,6 +3,8 @@ from flask import flash, render_template, request, make_response, jsonify, sessi
 from app.member.member_model import MemberModel, MemberDatabase, check_member_model_connection
 from flask_bcrypt import Bcrypt, check_password_hash, generate_password_hash
 import os,re
+from app.admin.admin_view import dashboard_page_admin
+from app.librarian.librarian_view import dashboard_page_librarian
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
 bcrypt = Bcrypt(app)
@@ -151,6 +153,7 @@ def member_requests():
         return jsonify({"error": "Database connection failed."})
 
     #Read the data
+    print(session.get('member_id'))
     requests_data = member_model.view_member_requests(session.get("member_id"))
     print("Data gets requests ",requests_data)
     return render_template('member/view_requests.html',
@@ -232,14 +235,33 @@ def login_member():
     print(flag,result)
     if flag:
         if check_password_hash(result[0].get('password'), password):
-            print(result)
-            session['member_id'] = result[0].get('user_id')
-            session['member_email'] = result[0].get('email')
-            session['member_password'] = result[0].get('password')
-            return jsonify({
-                "success": True,
-                "message": "Member gets successfully."
-            })
+            if result[0].get('role') == 'admin':
+                session['user_id'] = result[0].get('user_id')
+                session['admin_email'] = result[0].get('email')
+                session['admin_password'] = result[0].get('password')
+                return jsonify({
+                    "success": True,
+                    "url":'/admin/dashboard_page',
+                    "message": "Password is incorrect."
+                })
+            elif result[0].get('role') == 'member' and result[0].get('status') == 'active':
+                session['user_id'] = result[0].get('user_id')
+                session['member_email'] = result[0].get('email')
+                session['member_password'] = result[0].get('password')
+                return jsonify({
+                    "success": True,
+                    "url":'/member/dashboard',
+                    "message": "Password is incorrect."
+                })
+            elif result[0].get('role') == 'librarian' and result[0].get('status') == 'active':
+                session['user_id'] = result[0].get('user_id')
+                session['librarian_email'] = result[0].get('email')
+                session['librarian_password'] = result[0].get('password')
+                return jsonify({
+                    "success": True,
+                    "url":'/librarian/dashboard_page',
+                    "message": "Password is incorrect."
+                })
         else:
             return jsonify({
                 "success": False,

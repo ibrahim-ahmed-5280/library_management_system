@@ -1085,7 +1085,7 @@ def delete_copy():
 #===================================================#
 #================= LOGOUT ==========================#
 #Logout librarian user
-@app.route('/librarian/logout')
-def logout_librarian():
-    session.clear()
-    return login_page_librarian()
+# @app.route('/librarian/logout')
+# def logout_librarian():
+#     session.clear()
+#     return login_page_librarian()

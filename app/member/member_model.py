@@ -52,8 +52,7 @@ class MemberModel:
         sql = """
               SELECT * \
               FROM users
-              WHERE email = %s \
-                AND role = 'member' AND status = 'active';"""
+              WHERE email = %s;"""
 
         try:
             self.cursor.execute(sql, (email,))
@@ -345,7 +344,7 @@ class MemberModel:
                        JOIN books b ON b.book_id = e.book_id
 
               WHERE r.member_id = %s
-                AND r.status IN ('borrow', 'reserve')
+                AND r.request_type IN ('borrow', 'reserve')
 
               ORDER BY r.request_date DESC \
               """

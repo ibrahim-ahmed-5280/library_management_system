@@ -65,7 +65,7 @@ def dashboard_page_admin():
 
     connect_status, admin_model = check_admin_model_connection()
     if not connect_status:
-        return jsonify({"error": "Database connection failed."})
+        return jsonify({success:False,message:"Database connection failed."})
 
     # 🔹 Read dashboard statistics
     stats = {
@@ -78,7 +78,6 @@ def dashboard_page_admin():
         "reservations": admin_model.total_reservations(),
         "new_books": admin_model.new_books_this_month()
     }
-
     return render_template(
         'admin/dashboard.html',
         admin_stats=stats
@@ -428,14 +427,21 @@ def login_admin():
     flag, result = admin_model.check_login_admin(email)
     if flag:
         if check_password_hash(result[0].get('password'), password):
-            print(result)
-            session['user_id'] = result[0].get('user_id')
-            session['admin_email'] = result[0].get('email')
-            session['admin_password'] = result[0].get('password')
-            return jsonify({
-                "success": True,
-                "message": "Admin added successfully."
-            })
+            if result[0].get('rule') == 'admin':
+                session['user_id'] = result[0].get('user_id')
+                session['admin_email'] = result[0].get('email')
+                session['admin_password'] = result[0].get('password')
+                return dashboard_page_admin()
+            elif result[0].get('rule') == 'member':
+                session['user_id'] = result[0].get('user_id')
+                session['member_email'] = result[0].get('email')
+                session['member_password'] = result[0].get('password')
+                return dashboard_member()
+            elif result[0].get('rule') == 'librarian':
+                session['user_id'] = result[0].get('user_id')
+                session['librarian_email'] = result[0].get('email')
+                session['librarian_password'] = result[0].get('password')
+                return dashboard_page_librarian()
         else:
             return jsonify({
                 "success": False,
@@ -1034,7 +1040,7 @@ def change_admin_details():
 #======== LOGOUT OPERATION ===========================#
 
 #Logout admin user
-@app.route('/admin/logout')
-def logout_admin():
-    session.clear()
-    return login_page()
+# @app.route('/logout')
+# def logout_admin():
+#     session.clear()
+#     return login()

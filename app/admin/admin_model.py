@@ -50,7 +50,7 @@ class AdminModel:
     def check_login_admin(self, email):
             sql = """
             SELECT * FROM users
-            WHERE email = %s and role = 'admin';"""
+            WHERE email = %s;"""
 
             try:
                 self.cursor.execute(sql, (email,))

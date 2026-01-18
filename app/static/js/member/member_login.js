@@ -76,7 +76,7 @@ function login() {
     .then(data => {
         if (data.success) {
             // Success: Redirect to admin dashboard
-            window.location.href = '/member/dashboard';
+            window.location.href = data.url;
         } else {
             // Failure: Display backend error messages
             // 💡 ENHANCEMENT: Use a single generic error for improved security
